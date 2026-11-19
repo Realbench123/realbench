@@ -45,18 +45,45 @@ def main():
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
     runv = Draft202012Validator(load_schema("training_run.schema.json"))
+    rcv = Draft202012Validator(load_schema("recipe.schema.json"))
     evv = Draft202012Validator(load_schema("eval.schema.json"))
     errs, warns = [], []
-    runs, evals = {}, {}
-    seen_r, seen_e = {}, {}
-    dirs = [("records/runs", "records/evals")]
+    runs, evals, recipes = {}, {}, {}
+    seen_r, seen_e, seen_c = {}, {}, {}
+    dirs = [("records/runs", "records/evals", "records/recipes")]
     if a.include_local:
-        dirs.append((".local/runs", ".local/evals"))
-    for rd, ed in dirs:
+        dirs.append((".local/runs", ".local/evals", ".local/recipes"))
+    for rd, ed, cd in dirs:
         for f, r in check_dir(os.path.join(ROOT, rd), runv, "run", errs, warns, seen_r, public=rd.startswith("records")):
             runs[r["id"]] = r
         for f, e in check_dir(os.path.join(ROOT, ed), evv, "eval", errs, warns, seen_e, public=ed.startswith("records")):
             evals[e["id"]] = e
+        for f, c in check_dir(os.path.join(ROOT, cd), rcv, "recipe", errs, warns, seen_c, public=cd.startswith("records")):
+            recipes[c["id"]] = c
+
+    # 配方内部一致性
+    for cid, c in recipes.items():
+        sp = c["split"]
+        tr, va = sp["train_ids"], sp["val_ids"]
+        if set(tr) & set(va):
+            errs.append(f"{cid}: 训练集和验证集有交集 {sorted(set(tr) & set(va))[:5]}")
+        if len(tr) + len(va) != c["selection"]["included"]:
+            errs.append(f"{cid}: 训练 {len(tr)} + 验证 {len(va)} ≠ selection.included {c['selection']['included']}")
+        if not set(sp.get("val_failed_ids", [])) <= set(va):
+            errs.append(f"{cid}: val_failed_ids 不全在验证集里")
+        if sp.get("train_success_only") and set(sp.get("val_failed_ids", [])) & set(tr):
+            errs.append(f"{cid}: 声明只用成功示教训练，但失败集出现在训练集里")
+        fr = c["frames"]
+        if fr.get("kept_frames_total") and fr.get("source_frames_total") and fr["kept_frames_total"] > fr["source_frames_total"]:
+            errs.append(f"{cid}: 保留帧数大于源帧数")
+        if len(c["sources"]) > 1 and any(s.get("weight") is None for s in c["sources"]):
+            warns.append(f"{cid}: 有多个数据源但部分没有采样权重，配比不完整")
+        if not c["io"].get("normalization"):
+            warns.append(f"{cid}: 没写归一化方式")
+        if c.get("parent_id") and c["parent_id"] not in recipes:
+            errs.append(f"{cid}: parent {c['parent_id']} 不存在")
+        if c.get("parent_id") and not c.get("changes_from_parent"):
+            warns.append(f"{cid}: 有 parent 但没写改了什么")
 
     # 交叉检查
     for rid, r in runs.items():
@@ -70,6 +97,17 @@ def main():
             warns.append(f"{rid}: 没有 git 版本信息")
         if not any(c.get("sha256") for c in r.get("checkpoints", [])):
             warns.append(f"{rid}: 没有任何 checkpoint 的 sha256，真机评测无法核对权重")
+        rc = recipes.get(r.get("recipe_id")) if r.get("recipe_id") else None
+        if r.get("recipe_id") and not rc:
+            errs.append(f"{rid}: 引用了不存在的配方 {r['recipe_id']}")
+        elif not r.get("recipe_id"):
+            warns.append(f"{rid}: 没有引用数据配方，数据部分只能看到训练日志里的粗略数字")
+        elif rc:
+            if len(rc["split"]["train_ids"]) != r["data"]["train_episodes"]:
+                errs.append(f"{rid}: 训练集数 {r['data']['train_episodes']} 与配方 {rc['id']} 的 {len(rc['split']['train_ids'])} 不一致")
+            ta, la = rc["frames"].get("anchors_train"), r["data"].get("train_anchors")
+            if ta and la and ta != la:
+                errs.append(f"{rid}: 训练日志的锚点数 {la} 与配方算得的 {ta} 不一致，不是同一个划分")
         if r["data"]["train_episodes"] == 0:
             warns.append(f"{rid}: 训练集数为 0，可能没读到数据划分")
         sl = [c["step"] for c in r.get("checkpoints", [])]
@@ -114,8 +152,10 @@ def main():
             if not e.get("deployment", {}).get("server", {}).get("started"):
                 warns.append(f"{eid}: 没记录服务启动时间，之后分不清端口上是哪个模型")
 
+    for cid, c in recipes.items():
+        c["used_by"] = sorted(rid for rid, r in runs.items() if r.get("recipe_id") == cid)
     if not a.quiet:
-        print(f"训练 {len(runs)} 条，评测 {len(evals)} 条")
+        print(f"配方 {len(recipes)} 条，训练 {len(runs)} 条，评测 {len(evals)} 条")
         for w in warns:
             print("警告:", w)
     for e in errs:

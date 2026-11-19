@@ -7,8 +7,8 @@ function h(tag,attrs,kids){const e=document.createElement(tag);
   (kids||[]).forEach(c=>{if(c==null||c===false)return;e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
-const RUNS={},EVALS={};
-DATA.runs.forEach(r=>RUNS[r.id]=r);DATA.evals.forEach(e=>EVALS[e.id]=e);
+const RUNS={},EVALS={},RECIPES={};
+DATA.runs.forEach(r=>RUNS[r.id]=r);DATA.evals.forEach(e=>EVALS[e.id]=e);(DATA.recipes||[]).forEach(c=>RECIPES[c.id]=c);
 const KIND={scratch:'从头训',pretrain:'预训练',finetune:'微调',posttrain:'后训练'};
 const STATUS={finished:'已完成',running:'进行中',failed:'失败',stopped:'已停止',superseded:'已被取代'};
 const RESULT={success:'成功',fail:'失败',partial:'部分',invalid:'无效',unlabeled:'未标注'};
@@ -70,13 +70,15 @@ function diffsOf(r,all){
 
 /* ---------- 路由 ---------- */
 function route(){const x=location.hash.slice(1);
+  if(x==='recipes')return {v:'recipes'};
+  if(x.startsWith('c-'))return {v:'recipe',id:'rc-'+x.slice(2)};
   if(x.startsWith('r-'))return {v:'run',id:'tr-'+x.slice(2)};
   if(x.startsWith('e-'))return {v:'eval',id:'ev-'+x.slice(2)};
   if(x==='compare')return {v:'compare'};
   return {v:'home'}}
-function hashFor(id){return id.startsWith('tr-')?'#r-'+id.slice(3):'#e-'+id.slice(3)}
+function hashFor(id){return id.startsWith('tr-')?'#r-'+id.slice(3):id.startsWith('rc-')?'#c-'+id.slice(3):'#e-'+id.slice(3)}
 function renderTabs(cur){const t=$('#tabs');t.textContent='';
-  [['home','全部训练','#'],['compare','对比','#compare']].forEach(([k,l,hr])=>t.appendChild(h('a',{href:hr,text:l,'aria-current':cur===k?'page':null})))}
+  [['home','全部训练','#'],['recipes','数据配方','#recipes'],['compare','对比','#compare']].forEach(([k,l,hr])=>t.appendChild(h('a',{href:hr,text:l,'aria-current':cur===k?'page':null})))}
 
 /* ================= 总览：一行一次训练 ================= */
 const flt={q:'',kind:'',family:'',task:'',real:''};
@@ -111,9 +113,9 @@ function openCell(r){
     const m=(e.open_loop&&e.open_loop.metrics)||{};const k=Object.keys(m)[0];
     return h('div',null,[h('a',{href:hashFor(e.id),text:e.protocol.name}),h('span',{class:'cell-sub num',text:k?k+' '+Number(m[k]).toFixed(4):'无指标'})])}))}
 function dataCell(r){
-  const d=r.data;
+  const d=r.data,rc=r.recipe_id&&RECIPES[r.recipe_id];
   return h('div',null,[
-    h('div',null,[d.config_name||'—']),
+    rc?h('a',{href:hashFor(rc.id),text:rc.name}):h('div',null,[d.config_name||'—',h('span',{class:'missing',text:' 无配方',style:'margin-left:4px'})]),
     h('span',{class:'cell-sub num',text:d.train_episodes+' 集训练 / '+d.val_episodes+' 集验证'}),
     d.sources.length>1||(d.sources[0]&&d.sources[0].weight!=null)
       ?h('span',{class:'cell-sub',text:'配比 '+d.sources.map(s=>s.name+' '+(s.weight==null?'?':s.weight)).join(' : ')})
@@ -242,9 +244,12 @@ function viewRun(id){
   if(warn.length)v.appendChild(h('div',{class:'banner'},warn.map(w=>h('div',{text:w}))));
 
   // 数据
-  v.appendChild(h('section',{id:'sec-data',class:'sec'},[h('h2',{text:'数据'}),h('div',{class:'two'},[
+  const rcLink=r.recipe_id&&RECIPES[r.recipe_id];
+  v.appendChild(h('section',{id:'sec-data',class:'sec'},[h('h2',{text:'数据'}),
+    rcLink?h('p',null,['数据配方：',h('a',{href:hashFor(rcLink.id),text:rcLink.name}),h('span',{class:'sub',text:'（'+rcLink.id+'），来源、筛选、截取、划分和输入输出定义都在配方页。'})]):h('div',{class:'banner',text:'这次训练没有引用数据配方，下面只有训练日志里读到的粗略数字。'}),
+    h('div',{class:'two'},[
     h('div',{class:'panel'},[kvTable([['数据配置',r.data.config_name||'—'],['训练集数',fmtNum(r.data.train_episodes)],['验证集数',fmtNum(r.data.val_episodes)],
-      ['保留帧数',r.data.train_frames_kept?fmtNum(r.data.train_frames_kept):'未记录'],
+      ['训练锚点数',r.data.train_anchors?fmtNum(r.data.train_anchors):'未记录'],
       ['划分文件',r.data.split_file||'未记录'],['划分哈希',r.data.split_sha256?h('span',{class:'hash',text:r.data.split_sha256}):'未记录']])]),
     h('div',{class:'panel'},[h('h3',{text:'数据源与配比'}),h('table',{class:'t'},[h('thead',null,[h('tr',null,['来源','集数','权重','成败'].map(x=>h('th',{text:x})))]),
       h('tbody',null,r.data.sources.map(s=>h('tr',null,[h('td',{text:s.name}),h('td',{class:'n',text:fmtNum(s.episodes)}),h('td',{class:'n',text:s.weight==null?'未记录':s.weight}),h('td',{text:s.kind||'—'})])))]),
@@ -361,7 +366,7 @@ function renderCmp(){
   const items=[...cmpSel].map(i=>RUNS[i]).filter(Boolean);
   if(items.length<2){box.appendChild(h('div',{class:'empty',text:'选 2 条以上。'}));return}
   const groups=[
-    ['数据',[['数据配置',r=>r.data.config_name],['训练集数',r=>r.data.train_episodes],['验证集数',r=>r.data.val_episodes],['保留帧数',r=>r.data.train_frames_kept||'未记录'],['配比',r=>r.data.sources.map(s=>s.name+':'+(s.weight==null?'?':s.weight)).join(' ')]]],
+    ['数据',[['数据配置',r=>r.data.config_name],['训练集数',r=>r.data.train_episodes],['验证集数',r=>r.data.val_episodes],['训练锚点数',r=>r.data.train_anchors||'未记录'],['配比',r=>r.data.sources.map(s=>s.name+':'+(s.weight==null?'?':s.weight)).join(' ')]]],
     ['训练',[['类型',r=>KIND[r.kind]],['基座',r=>basename(r.base.model_path)],['步数',r=>r.hparams.max_steps],['全局 batch',r=>r.hparams.global_batch],['学习率',r=>r.hparams.learning_rate],['调度',r=>r.hparams.scheduler],['预热',r=>r.hparams.warmup_steps],['种子',r=>r.hparams.seed==null?'—':r.hparams.seed],['可训练',r=>(r.hparams.trainable||[]).join('+')],
       ...[...new Set(items.flatMap(r=>Object.keys(r.hparams.extra||{})))].map(k=>[k,r=>(r.hparams.extra||{})[k]==null?'—':String((r.hparams.extra||{})[k])]),
       ['机器',r=>r.hardware.machine+' × '+r.hardware.gpus],['代码',r=>(r.code.git_hash?r.code.git_hash.slice(0,8):'无版本')+(r.code.dirty?' 未提交':'')]]],
@@ -377,12 +382,120 @@ function renderCmp(){
 /* ================= 启动 ================= */
 function render(){
   const r=route(),main=$('#main');main.textContent='';
-  renderTabs(r.v==='compare'?'compare':'home');
+  renderTabs(r.v==='compare'?'compare':(r.v==='recipes'||r.v==='recipe')?'recipes':'home');
   let view;
-  if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else view=viewHome();
+  if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else if(r.v==='recipes')view=viewRecipes();else if(r.v==='recipe')view=viewRecipe(r.id);else view=viewHome();
   main.appendChild(view);
   if(r.v==='home')renderTable();if(r.v==='compare')renderCmp();
   window.scrollTo(0,0)}
 $('#built').textContent='构建 '+DATA.built+' · '+DATA.commit;
 window.addEventListener('hashchange',render);
 render();
+
+/* ================= 数据配方 ================= */
+const BAR_COLORS=['fill','fill minor','fill bad'];
+function funnelRow(label,value,max,cls,sub){
+  return h('div',{class:'bar'},[h('span',{text:label}),
+    h('div',{class:'track',role:'img','aria-label':label+' '+fmtNum(value)},[h('div',{class:cls||'fill',style:'width:'+Math.max(0.5,100*value/max)+'%'})]),
+    h('span',{class:'num',text:fmtNum(value)+(sub?' '+sub:''),style:'text-align:right'})])}
+function recipeFunnel(c){
+  const fr=c.frames,sel=c.selection,sp=c.split;
+  const srcN=c.sources.reduce((a,x)=>a+x.episodes,0);
+  const rows=[['源 episode',srcN,srcN,'fill','集'],['筛选后',sel.included,srcN,'fill','集（排除 '+sel.excluded.length+'）'],
+    ['训练 / 验证',sp.train_ids.length,srcN,'fill','集 / 验证 '+sp.val_ids.length+' 集']];
+  const f=[];
+  rows.forEach(r=>f.push(funnelRow(...r)));
+  if(fr.source_frames_total){
+    const m=fr.source_frames_total;
+    f.push(h('div',{class:'sub',style:'margin-top:6px',text:'帧（进入配方的 '+fmtNum(sel.included)+' 集）'}));
+    f.push(funnelRow('原始帧',fr.source_frames_total,m,'fill',''));
+    if(fr.kept_frames_total)f.push(funnelRow('截取后保留',fr.kept_frames_total,m,'fill minor','（'+(100*fr.kept_frames_total/m).toFixed(1)+'%）'));
+    if(fr.anchors_train!=null)f.push(funnelRow('训练锚点',fr.anchors_train,m,'fill','（整块 '+fr.horizon+' 步落在保留区内）'));
+    if(fr.anchors_val!=null)f.push(funnelRow('验证锚点',fr.anchors_val,m,'fill','')) }
+  return h('div',{class:'funnel'},f)}
+function idGrid(c){
+  const sp=c.split,ex=new Map(c.selection.excluded.map(x=>[x.id,x.reason]));
+  const tr=new Set(sp.train_ids),va=new Set(sp.val_ids),vf=new Set(sp.val_failed_ids||[]);
+  const all=[...new Set([...sp.train_ids,...sp.val_ids])].sort((a,b)=>a-b);
+  const cells=all.map(i=>h('span',{class:vf.has(i)?'vf':va.has(i)?'va':'tr',title:(vf.has(i)?'验证集·失败示教':va.has(i)?'验证集':'训练集')+' #'+i,text:String(i)}));
+  return h('div',null,[h('div',{class:'idgrid'},cells),
+    h('div',{class:'keys'},[h('span',null,[h('i',{style:'background:var(--accent-soft)'}),'训练 '+tr.size]),h('span',null,[h('i',{style:'border-color:var(--ok)'}),'验证 '+(va.size-vf.size)]),h('span',null,[h('i',{style:'border-color:var(--bad)'}),'验证·失败示教 '+vf.size])]),
+    h('p',{class:'sub',style:'margin-top:6px',text:'编号用的是“'+(sp.id_space||'未说明')+'”。'+(sp.id_note||'')})])}
+function histogram(vals,unit,fps){
+  const W=480,H=150,m={l:40,r:10,t:10,b:26},ns='http://www.w3.org/2000/svg';
+  const lo=Math.min(...vals),hi=Math.max(...vals),B=14,bw=(hi-lo)/B||1,bins=Array(B).fill(0);
+  vals.forEach(v=>{bins[Math.min(B-1,Math.floor((v-lo)/bw))]++});
+  const mx=Math.max(...bins);
+  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('role','img');svg.setAttribute('aria-label','单集帧数分布，最短 '+lo+'，最长 '+hi);
+  const add=(t,at,tx)=>{const e=document.createElementNS(ns,t);for(const k in at)e.setAttribute(k,at[k]);if(tx!=null)e.textContent=tx;svg.appendChild(e)};
+  const pw=(W-m.l-m.r)/B;
+  bins.forEach((n,i)=>{const hh=(H-m.t-m.b)*n/mx;add('rect',{x:m.l+i*pw+1,y:H-m.b-hh,width:pw-2,height:hh,fill:'var(--accent)',opacity:.85})});
+  add('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,stroke:'var(--line)'});
+  [0,0.5,1].forEach(t=>{const v=lo+(hi-lo)*t;add('text',{x:m.l+(W-m.l-m.r)*t,y:H-8,'text-anchor':t===0?'start':t===1?'end':'middle','font-size':12,fill:'var(--muted)','font-family':'var(--f-mono)'},Math.round(v).toLocaleString('en-US')+(fps?' ('+(v/fps).toFixed(0)+'s)':''))});
+  add('text',{x:m.l-6,y:m.t+10,'text-anchor':'end','font-size':12,fill:'var(--muted)','font-family':'var(--f-mono)'},String(mx));
+  add('text',{x:m.l-6,y:H-m.b,'text-anchor':'end','font-size':12,fill:'var(--muted)','font-family':'var(--f-mono)'},'0');
+  return svg}
+
+function viewRecipe(id){
+  const c=RECIPES[id];if(!c)return viewMissing('找不到配方 '+id);
+  const v=h('div',{style:'display:flex;flex-direction:column;gap:16px'});
+  v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#recipes',text:'← 全部配方'})]));
+  v.appendChild(h('div',null,[h('h2',{text:c.name,style:'font-size:20px'}),
+    h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[c._sample?h('span',{class:'pill tag-sample',text:'样本'}):null,
+      h('span',{class:'sub num',text:c.id+' · '+c.task+' · '+c.robot+(c.owner?' · '+c.owner:'')})]),
+    c.parent_id?h('p',{class:'sub',style:'margin-top:6px'},['改自 ',RECIPES[c.parent_id]?h('a',{href:hashFor(c.parent_id),text:RECIPES[c.parent_id].name}):c.parent_id,'：'+(c.changes_from_parent||[]).join('；')]):null]));
+  const w=[];
+  if(c.notes)v.appendChild(h('p',{class:'sub',text:c.notes}));
+  if(c.sources.length>1&&c.sources.some(s=>s.weight==null))w.push('有多个数据源但部分没有采样权重。');
+  c.sources.forEach(s=>{if(!s.sha256)w.push('数据源 '+s.name+' 没有记哈希，别人无法确认拿到的是同一份数据。')});
+  if(w.length)v.appendChild(h('div',{class:'banner'},w.map(x=>h('div',{text:x}))));
+
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'从源数据到训练样本'}),h('div',{class:'panel'},[recipeFunnel(c)])]));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'数据来源'}),h('div',{class:'panel scroll'},[h('table',{class:'t'},[
+    h('thead',null,[h('tr',null,['名称','类型','集数','采样权重','格式','哈希','备注'].map(x=>h('th',{text:x})))]),
+    h('tbody',null,c.sources.map(s=>h('tr',null,[h('td',{text:s.name}),h('td',{text:s.kind}),h('td',{class:'n',text:fmtNum(s.episodes)}),
+      h('td',{class:'n',text:s.weight==null?(c.sources.length>1?'未记录':'单源'):s.weight}),h('td',{text:s.format||'—'}),
+      h('td',null,[s.sha256?h('span',{class:'hash',text:s.sha256.slice(0,16)+'…'}):missing('无')]),h('td',{text:s.note||''})])))])])]));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'筛选'}),h('div',{class:'two'},[
+    h('div',{class:'panel'},[kvTable([['规则',c.selection.rule||'未记录'],['进入配方',fmtNum(c.selection.included)+' 集'],
+      ['成功示教',c.selection.success_count==null?'未记录':c.selection.success_count],['失败示教',c.selection.failed_count==null?'未记录':c.selection.failed_count]])]),
+    h('div',{class:'panel'},[h('h3',{text:'被排除的 episode'}),c.selection.excluded.length?h('table',{class:'t'},[h('thead',null,[h('tr',null,['源编号','原因'].map(x=>h('th',{text:x})))]),
+      h('tbody',null,c.selection.excluded.map(x=>h('tr',null,[h('td',{class:'n',text:x.id}),h('td',{text:x.reason})])))]):h('p',{class:'sub',text:'没有排除任何集。'})])])]));
+  const fr=c.frames,tm=fr.trim||{},det=tm.detector||{};
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'截取与采样'}),h('div',{class:'two'},[
+    h('div',{class:'panel'},[kvTable([['频率',fr.fps+' Hz'],['动作块长度',fr.horizon+' 步（'+(fr.horizon/fr.fps).toFixed(2)+' 秒）'],['方式',tm.method||'未记录'],
+      ['前留白',tm.pad_before_s==null?'—':tm.pad_before_s+' 秒'],['后留白',tm.pad_after_s==null?'—':tm.pad_after_s+' 秒'],['裁集内部',tm.interior_trim?'是':'否'],
+      ...Object.entries(det).filter(([k])=>!k.startsWith('padding')).map(([k,x])=>['检测器 '+k,String(x)]),
+      ['保留文件',fr.keep_file?h('span',{class:'hash',text:fr.keep_file+(fr.keep_file_sha256?'  '+fr.keep_file_sha256.slice(0,12)+'…':'')}):'未记录']])]),
+    h('div',{class:'chartbox'},[h('h3',{text:'单集帧数分布'}),fr.episode_frames&&fr.episode_frames.values.length?histogram(fr.episode_frames.values,'帧',fr.fps):h('p',{class:'sub',text:'没有记录'})])])]));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'训练 / 验证划分'}),h('div',{class:'panel'},[kvTable([['划分单位',c.split.unit||'未记录'],['种子',c.split.seed==null?'—':c.split.seed],
+    ['只用成功示教训练',c.split.train_success_only?'是':'否'],['划分文件',c.split.file?h('span',{class:'hash',text:c.split.file+(c.split.file_sha256?'  '+c.split.file_sha256.slice(0,12)+'…':'')}):'未记录']]),
+    h('div',{style:'margin-top:12px'},[idGrid(c)])])]));
+  const io=c.io;
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'输入输出定义'}),h('div',{class:'panel'},[kvTable([['状态',io.state||'未记录'],['动作',io.action||'未记录'],
+    ['动作语义',io.action_semantics||'—'],['动作参数化',({absolute:'绝对',relative_to_anchor:'相对锚点状态',delta:'相邻差分',other:'其他'})[io.action_param]||io.action_param],
+    ['参数化说明',io.action_param_note||'—'],['相机',(io.cameras||[]).join('、')],['图像尺寸',io.image_size?io.image_size.join('×'):'—'],
+    ['归一化',io.normalization||missing('未记录')],['任务文本',c.instruction||'—']])])]));
+  const used=(c.used_by||[]).map(i=>RUNS[i]).filter(Boolean);
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'用了这个配方的训练'}),used.length?h('div',{class:'panel'},[h('ul',{style:'margin:0;padding-left:1.2em'},used.map(r=>h('li',null,[h('a',{href:hashFor(r.id),text:r.name}),h('span',{class:'sub',text:' · '+KIND[r.kind]+' · '+fmtNum(r.hparams.max_steps)+' 步'})])))]):h('div',{class:'empty',text:'还没有训练引用这个配方。'})]));
+  return v}
+
+function viewRecipes(){
+  const v=h('div',{style:'display:flex;flex-direction:column;gap:14px'});
+  v.appendChild(h('div',null,[h('h2',{text:'数据配方'}),h('p',{class:'sub',text:'一个配方说清楚训练数据怎么来：哪些源、筛了什么、怎么截、怎么划分、输入输出怎么定义。训练记录引用配方，同一配方可被多次训练共用。数据本体不进仓库，只记标识和哈希。'})]));
+  const rows=DATA.recipes||[];
+  if(!rows.length){v.appendChild(h('div',{class:'empty',text:'还没有配方。用 tools/import_tau0_recipe.py 导入。'}));return v}
+  const t=h('table',{class:'runs rcs'});
+  t.appendChild(h('thead',null,[h('tr',null,['配方','任务 / 本体','数据来源','筛选','划分','帧与锚点','动作参数化','被引用'].map(x=>h('th',{text:x})))]));
+  const tb=h('tbody');
+  rows.forEach(c=>{const fr=c.frames;
+    tb.appendChild(h('tr',{class:'row'},[
+      h('td',{class:'name'},[h('a',{href:hashFor(c.id),text:c.name}),h('span',{class:'cell-sub num',text:c.id}),c._sample?h('span',{class:'pill tag-sample',text:'样本',style:'margin-top:4px'}):null]),
+      h('td',null,[h('div',{text:c.task}),h('span',{class:'cell-sub',text:c.robot})]),
+      h('td',null,c.sources.map(s=>h('div',null,[s.name,h('span',{class:'cell-sub num',text:s.kind+' · '+fmtNum(s.episodes)+' 集'+(c.sources.length>1?' · 权重 '+(s.weight==null?'?':s.weight):'')})]))),
+      h('td',null,[h('div',{class:'num',text:fmtNum(c.selection.included)+' / '+fmtNum(c.sources.reduce((a,x)=>a+x.episodes,0))+' 集'}),h('span',{class:'cell-sub',text:'排除 '+c.selection.excluded.length+'；'+(c.selection.rule||'')})]),
+      h('td',null,[h('div',{class:'num',text:c.split.train_ids.length+' 训 / '+c.split.val_ids.length+' 验'}),h('span',{class:'cell-sub',text:'seed '+(c.split.seed==null?'—':c.split.seed)+(c.split.val_failed_ids&&c.split.val_failed_ids.length?'；验证含 '+c.split.val_failed_ids.length+' 个失败示教':'')})]),
+      h('td',null,[h('div',{class:'num',text:fr.kept_frames_total?fmtNum(fr.kept_frames_total)+' 帧':'—'}),h('span',{class:'cell-sub num',text:fr.anchors_train!=null?'训练锚点 '+fmtNum(fr.anchors_train):''}),h('span',{class:'cell-sub',text:fr.fps+' Hz · 块 '+fr.horizon+' 步'})]),
+      h('td',null,[({absolute:'绝对',relative_to_anchor:'相对锚点',delta:'差分',other:'其他'})[c.io.action_param]||c.io.action_param]),
+      h('td',null,[(c.used_by||[]).length?h('div',null,(c.used_by||[]).map(i=>h('div',null,[h('a',{href:hashFor(i),text:RUNS[i]?RUNS[i].name:i})]))):h('span',{class:'idle',text:'未被引用'})])]))});
+  t.appendChild(tb);v.appendChild(h('div',{class:'scroll'},[t]));return v}

@@ -18,8 +18,8 @@
 
 | 路径 | 内容 |
 |---|---|
-| `schema/` | 训练记录和评测记录的 JSON Schema |
-| `records/runs/`、`records/evals/` | 正式记录，一条一个 json，**会公开** |
+| `schema/` | 训练、评测、数据配方三种记录的 JSON Schema |
+| `records/runs/`、`records/evals/`、`records/recipes/` | 正式记录，一条一个 json，**会公开** |
 | `curves/` | 训练曲线（逐步 loss、grad_norm、lr、步耗时） |
 | `protocols/` | 评测协议，改任何一项就是新版本 |
 | `tools/` | 导入器、校验器、站点生成器、视频上传 |
@@ -31,9 +31,13 @@
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
+# 0. 导入数据配方（训练引用它；同一配方可被多次训练共用）
+.venv/bin/python tools/import_tau0_recipe.py <含 split.json 和 frame_keep.json 的目录> --id rc-xxx --name "..." --task <task> --robot "..." \
+    --source-name <源数据集名> --excluded "27:原因" --readme-train-anchors N --readme-val-anchors M --out records/recipes
+
 # 1. 导入一次训练（τ₀ 训练器；其他训练栈写一个适配器输出同样的记录）
 .venv/bin/python tools/import_tau0_run.py <训练输出目录> --id tr-xxx --machine "..." --split-dir <含 split.json 的目录> \
-    --kind finetune --kind-note "归类依据" --out records/runs
+    --kind finetune --kind-note "归类依据" --recipe rc-xxx --out records/runs
 
 # 2. 导入真机运行（每个运行目录是一次试验）。成败不会自动判，要看视频后手工标
 .venv/bin/python tools/import_arx63_eval.py <运行目录...> --id ev-xxx --run-id tr-xxx --step N --weight-sha256 <sha> --task <task> --out records/evals
@@ -54,6 +58,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 - **成败由看视频的人标**，`label_by` 写人名。导入器一律写 `unlabeled`。
 - **预测在跑之前写**，带时间戳。事后补的标 `after_the_fact`，页面会显示。
 - **闭环每个设置至少 3 次**，不足的页面标警告。
+- **配方的编号要说清楚。** `split.json` 的编号是转换后数据集的下标，不是源 episode 编号。导入器用 README 里的锚点数反向验证换算，对不上就拒绝写入。
+- **“保留帧数”和“锚点数”是两个数。** 训练日志里的 `kept N/M frames` 的 N 是锚点数（整块动作都落在保留区内），页面分开显示。
 - **基线要显式指定**（`baseline_id`），页面不猜。
 - **汇总字段不可信。** 训练器写的 `train_loss` 在续训后可能是 0，导入器从逐步日志重算。
 - **硬件看日志，不看配置里的 notes。** 全局 batch = 每卡 × 累积 × `world_size`（读训练日志）。

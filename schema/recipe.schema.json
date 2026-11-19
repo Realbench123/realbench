@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://realbench.local/schema/recipe.schema.json",
+  "title": "数据配方 (data recipe)",
+  "description": "一个训练用的数据配方：数据从哪来、怎么选、怎么截、怎么划分、怎么变成输入输出。训练记录通过 recipe_id 引用它，同一配方可以被多次训练共用。数据本体不进仓库，只记标识和哈希。",
+  "type": "object",
+  "required": ["id", "name", "task", "robot", "sources", "selection", "frames", "split", "io"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^rc-[a-z0-9][a-z0-9-]*$"},
+    "name": {"type": "string", "minLength": 1},
+    "owner": {"type": "string"},
+    "task": {"type": "string", "description": "任务名，与评测记录的 task 同一写法"},
+    "instruction": {"type": ["string", "null"], "description": "训练时的任务文本原文"},
+    "robot": {"type": "string"},
+    "parent_id": {"type": ["string", "null"], "description": "由哪个配方改出来的"},
+    "changes_from_parent": {"type": "array", "items": {"type": "string"}, "description": "相对 parent 改了什么，一条一句"},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "原始数据源。混合数据有多条，weight 是采样权重；单源时 weight 可为 null",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind", "episodes"],
+        "properties": {
+          "name": {"type": "string"},
+          "kind": {"type": "string", "enum": ["teleop", "scripted", "policy_rollout", "sim", "web_video", "other"]},
+          "episodes": {"type": "integer", "minimum": 0, "description": "源里的集数（筛选之前）"},
+          "weight": {"type": ["number", "null"]},
+          "collected": {"type": ["string", "null"], "description": "采集时间范围或日期"},
+          "operators": {"type": ["integer", "null"], "description": "遥操作员人数"},
+          "location": {"type": ["string", "null"], "description": "采集场景，不写内部地址"},
+          "format": {"type": ["string", "null"], "description": "例如 hdf5、lerobot v2"},
+          "sha256": {"type": ["string", "null"], "description": "数据集清单的哈希"},
+          "url": {"type": ["string", "null"], "description": "公开数据集链接，没有就 null"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "required": ["included", "excluded"],
+      "properties": {
+        "rule": {"type": "string", "description": "筛选规则，如“只用成功示教”"},
+        "included": {"type": "integer", "minimum": 0, "description": "筛选后进入配方的集数"},
+        "excluded": {
+          "type": "array",
+          "items": {"type": "object", "required": ["id", "reason"], "properties": {"id": {"type": "integer"}, "reason": {"type": "string"}}},
+          "description": "被排除的集，逐条写原因"
+        },
+        "success_count": {"type": ["integer", "null"]},
+        "failed_count": {"type": ["integer", "null"]}
+      }
+    },
+    "frames": {
+      "type": "object",
+      "required": ["fps", "horizon"],
+      "properties": {
+        "fps": {"type": "number"},
+        "horizon": {"type": "integer", "description": "动作块长度（步）"},
+        "trim": {
+          "type": "object",
+          "properties": {
+            "method": {"type": "string", "description": "截取方式，如“运动窗口检测 + 前后留白”"},
+            "pad_before_s": {"type": ["number", "null"]},
+            "pad_after_s": {"type": ["number", "null"]},
+            "detector": {"type": "object", "description": "检测器参数原样"},
+            "interior_trim": {"type": "boolean", "description": "是否裁掉集内部的静止段"}
+          }
+        },
+        "source_frames_total": {"type": ["integer", "null"], "description": "进入配方的集的原始总帧数"},
+        "kept_frames_total": {"type": ["integer", "null"]},
+        "anchors_train": {"type": ["integer", "null"], "description": "训练可取的锚点数（整块动作都落在保留区间内）"},
+        "anchors_val": {"type": ["integer", "null"]},
+        "episode_frames": {
+          "type": "object",
+          "description": "单集帧数分布，页面画直方图",
+          "properties": {"values": {"type": "array", "items": {"type": "integer"}}, "unit": {"type": "string"}}
+        },
+        "keep_file": {"type": ["string", "null"]},
+        "keep_file_sha256": {"type": ["string", "null"]}
+      }
+    },
+    "split": {
+      "type": "object",
+      "required": ["unit", "seed", "train_ids", "val_ids"],
+      "properties": {
+        "unit": {"type": "string", "description": "划分单位，如 complete source episode"},
+        "seed": {"type": ["integer", "null"]},
+        "train_ids": {"type": "array", "items": {"type": "integer"}},
+        "val_ids": {"type": "array", "items": {"type": "integer"}},
+        "val_failed_ids": {"type": "array", "items": {"type": "integer"}, "description": "验证集中的失败集"},
+        "id_space": {"type": "string", "description": "train_ids/val_ids 用的是哪套编号"},
+        "id_note": {"type": "string", "description": "编号与源编号的换算，写清楚，否则别人查源数据会查错"},
+        "train_success_only": {"type": "boolean"},
+        "file": {"type": ["string", "null"]},
+        "file_sha256": {"type": ["string", "null"]}
+      }
+    },
+    "io": {
+      "type": "object",
+      "required": ["state", "action", "cameras"],
+      "properties": {
+        "state": {"type": "string", "description": "例如 双臂关节位置 12 + 夹爪 2"},
+        "action": {"type": "string"},
+        "action_semantics": {"type": "string", "description": "例如 joint_position_command"},
+        "action_param": {"type": "string", "enum": ["absolute", "relative_to_anchor", "delta", "other"], "description": "绝对 / 相对锚点状态 / 相邻差分"},
+        "action_param_note": {"type": "string"},
+        "cameras": {"type": "array", "items": {"type": "string"}},
+        "image_size": {"type": ["array", "null"], "items": {"type": "integer"}},
+        "prompt_template": {"type": ["string", "null"]},
+        "normalization": {"type": "string", "description": "归一化方式，如“逐模型族、只用训练窗口拟合”"},
+        "norm_stats_sha256": {"type": ["string", "null"]},
+        "state_dim_padded": {"type": ["integer", "null"]},
+        "action_dim_padded": {"type": ["integer", "null"]}
+      }
+    },
+    "used_by": {"type": "array", "items": {"type": "string"}, "description": "引用本配方的训练 id。由构建脚本核对，不必手填"},
+    "notes": {"type": "string"},
+    "source": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {"type": "string", "enum": ["auto-import", "manual"]},
+        "path": {"type": "string"},
+        "imported_at": {"type": ["string", "null"]},
+        "importer_version": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

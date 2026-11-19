@@ -179,6 +179,7 @@ def build(args):
         "owner": args.owner or "",
         "family": args.family,
         "baseline_id": args.baseline,
+        "recipe_id": args.recipe,
         "kind": args.kind or "finetune",
         "kind_note": args.kind_note or "",
         "kind_suggested": suggest_kind(ma, ma.get("model_name_or_path")),
@@ -187,7 +188,7 @@ def build(args):
             "sources": [{"name": da.get("config_name", ""), "episodes": n_train, "weight": None, "kind": "success"}],
             "train_episodes": n_train,
             "val_episodes": n_val,
-            "train_frames_kept": lg["frames_kept"],
+            "train_anchors": lg["frames_kept"],
             "split_file": "configs/arx_fold_blue_relative/split.json" if split else None,
             "split_sha256": sha256_file(os.path.join(args.split_dir, "split.json")) if split else None,
             "config_name": da.get("config_name", ""),
@@ -246,6 +247,7 @@ def main():
     ap.add_argument("--kind", choices=["scratch", "pretrain", "finetune", "posttrain"])
     ap.add_argument("--kind-note")
     ap.add_argument("--base-run")
+    ap.add_argument("--recipe", help="数据配方 id（rc-...）")
     ap.add_argument("--baseline", help="对比用的基线训练 id；不给则页面不显示差异")
     ap.add_argument("--no-redact", action="store_true", help="保留绝对路径（只用于私有仓库）")
     ap.add_argument("--machine", required=True)
