@@ -61,6 +61,14 @@ def main():
         for f, c in check_dir(os.path.join(ROOT, cd), rcv, "recipe", errs, warns, seen_c, public=cd.startswith("records")):
             recipes[c["id"]] = c
 
+    # 删除清单：已删除或不要导入的 id 不能出现在 records/ 里
+    sys.path.insert(0, HERE)
+    from _admin_core import tombstones
+    gone = {e["id"]: e["state"] for e in tombstones()["entries"]}
+    for table in (runs, evals, recipes):
+        for rid in table:
+            if rid in gone and not rid.endswith("-sample") and "sample" not in rid:
+                errs.append(f"{rid}: 在 records/_deleted.json 里标为 {gone[rid]}，不应再出现在记录里")
     # 配方内部一致性
     for cid, c in recipes.items():
         sp = c["split"]

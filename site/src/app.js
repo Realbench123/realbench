@@ -68,6 +68,51 @@ function diffsOf(r,all){
   Object.keys({...x,...y}).forEach(k=>{if(String(x[k])!==String(y[k]))out.push([k,y[k],x[k]])});
   return {base:b,list:out}}
 
+/* ---------- 管理模式：只有从本机管理服务打开时才有删除键 ---------- */
+const ADMIN={on:false,token:null};
+async function detectAdmin(){
+  if(!/^https?:$/.test(location.protocol))return;
+  try{const r=await fetch('/api/ping',{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+    if(j&&j.admin&&j.token){ADMIN.on=true;ADMIN.token=j.token;document.body.classList.add('admin');render()}}catch(e){}}
+async function adminCall(path,body){
+  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Token':ADMIN.token},body:JSON.stringify(body||{})});
+  const j=await r.json().catch(()=>({error:'服务返回的不是 JSON'}));
+  if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j}
+function confirmDelete(id){
+  adminCall('/api/plan',{id}).then(pl=>{
+    const d=document.createElement('dialog');
+    const kind={run:'训练',eval:'评测',recipe:'配方'}[pl.type];
+    const kids=[h('h3',{text:'删除这条'+kind+'？'}),h('p',{text:pl.name+'（'+pl.id+'）'})];
+    if(pl.blockers.length){
+      kids.push(h('div',{class:'warnline'},[h('b',{text:'现在不能删：'}),h('ul',null,pl.blockers.map(b=>h('li',{text:b})))]));
+      kids.push(h('div',{class:'row'},[h('button',{class:'btn',text:'知道了',onclick:()=>d.close()})]))}
+    else{
+      kids.push(h('p',{class:'sub',text:'会一起删除：'}));
+      kids.push(h('ul',null,pl.delete.map(x=>h('li',{text:{run:'训练',eval:'评测',recipe:'配方'}[x.type]+' · '+x.name+(x.public?'':'（只在本机的样本）')}))));
+      if(pl.modify.length){kids.push(h('p',{class:'sub',text:'同时改动：'}));kids.push(h('ul',null,pl.modify.map(m=>h('li',{text:m.what+'（'+m.id+'）'}))))}
+      if(pl.public)kids.push(h('div',{class:'warnline',text:'这条记录已经在公开仓库里。删除只影响本机文件和之后的发布，git 历史里仍然留着旧内容，已经发布的页面也要等你重新发布才会消失。'}));
+      const inp=h('input',{type:'text',id:'del-reason',placeholder:'原因（可选，会写进公开的删除清单，别写敏感信息）',maxlength:'120'});
+      kids.push(inp);
+      const err=h('div',{class:'warnline',style:'display:none'});kids.push(err);
+      kids.push(h('div',{class:'row'},[h('button',{class:'btn',text:'取消',onclick:()=>d.close()}),
+        h('button',{class:'btn danger',text:'确认删除',onclick:async e=>{e.target.disabled=true;
+          try{const r=await adminCall('/api/delete',{id,reason:inp.value});d.close();
+            alert_line('已删除 '+r.deleted.join('、')+'。文件在回收站 '+r.trash+'，可恢复。'+(r.validate_ok===false?' 注意：删除后校验未通过。':''));
+            setTimeout(()=>location.assign(location.pathname+'#'),0);setTimeout(()=>location.reload(),150)}
+          catch(x){err.style.display='';err.textContent=x.message;e.target.disabled=false}}})]))}
+    d.appendChild(h('div',null,kids));document.body.appendChild(d);d.addEventListener('close',()=>d.remove());d.showModal();
+  }).catch(e=>alert_line('无法生成删除计划：'+e.message))}
+function alert_line(t){const b=h('div',{class:'banner',text:t,style:'position:fixed;left:16px;right:16px;bottom:16px;z-index:50;max-width:720px;margin:auto'});document.body.appendChild(b);setTimeout(()=>b.remove(),6000)}
+function delBtn(id,label){return h('button',{class:'btn danger sm adm',type:'button',text:label||'删除',onclick:e=>{e.preventDefault();e.stopPropagation();confirmDelete(id)}})}
+function adminBar(){return h('div',{class:'adminbar'},[h('b',{text:'管理模式'}),h('span',{class:'sub',text:'这里能删除记录，删除的文件进回收站，可以恢复。公开页面没有这些按钮。'}),
+  h('button',{class:'btn sm',type:'button',text:'回收站',onclick:showTrash})])}
+async function showTrash(){
+  const j=await adminCall('/api/trash',{});const d=document.createElement('dialog');
+  d.appendChild(h('div',null,[h('h3',{text:'回收站'}),j.items.length?h('ul',null,j.items.map(it=>h('li',null,[(it.name||it.id)+' · '+it.at.slice(0,16)+' ',
+    h('button',{class:'btn sm',type:'button',text:'恢复',onclick:async()=>{try{await adminCall('/api/restore',{id:it.id});d.close();location.reload()}catch(e){alert_line(e.message)}}})]))):h('p',{class:'sub',text:'空的。'}),
+    h('div',{class:'row'},[h('button',{class:'btn',text:'关闭',onclick:()=>d.close()})])]));
+  document.body.appendChild(d);d.addEventListener('close',()=>d.remove());d.showModal()}
+
 /* ---------- 路由 ---------- */
 function route(){const x=location.hash.slice(1);
   if(x==='recipes')return {v:'recipes'};
@@ -161,7 +206,7 @@ function renderTable(){
     if(r._sample)flags.push(h('span',{class:'pill tag-sample',text:'样本'}));
     if(r.code.dirty)flags.push(h('span',{class:'pill warn',text:'代码未提交',title:'训练时工作区有未提交改动'}));
     tb.appendChild(h('tr',{class:'row'},[
-      h('td',{class:'name'},[h('a',{href:hashFor(r.id),text:r.name}),
+      h('td',{class:'name'},[h('a',{href:hashFor(r.id),text:r.name}),delBtn(r.id),
         h('span',{class:'cell-sub',text:r.owner?r.owner+' · '+dateOf(r.time&&r.time.start):dateOf(r.time&&r.time.start)}),
         h('span',{class:'cell-sub num',text:r.hardware.machine+' · '+r.hardware.gpus+' 卡'}),
         h('span',{class:'pill s-'+r.status,text:STATUS[r.status],style:'margin-top:4px;margin-right:4px'}),...flags]),
@@ -233,7 +278,7 @@ function viewRun(id){
     h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[
       h('span',{class:'pill k-'+r.kind,text:KIND[r.kind]}),h('span',{class:'pill s-'+r.status,text:STATUS[r.status]}),
       r._sample?h('span',{class:'pill tag-sample',text:'样本'}):null,
-      h('span',{class:'sub num',text:r.id+' · '+(r.owner||'无负责人')+' · '+dateOf(r.time&&r.time.start)})]),
+      h('span',{class:'sub num',text:r.id+' · '+(r.owner||'无负责人')+' · '+dateOf(r.time&&r.time.start)}),delBtn(r.id,'删除这条训练')]),
     r.kind_note?h('p',{class:'sub',style:'margin-top:6px',text:'归类：'+r.kind_note}):h('p',{class:'sub'},[missing('缺归类依据'),' 训练类型要人工确认，导入器只给建议（建议：'+KIND[r.kind_suggested||'']+'）。'])]));
   v.appendChild(chainBar(r));
   const warn=[];
@@ -297,11 +342,11 @@ function viewRun(id){
   v.appendChild(h('section',{id:'sec-real',class:'sec'},[h('h2',{text:'真机评测'}),
     closedEvalsOf(r).length?h('div',{class:'panel'},[evalList(closedEvalsOf(r))]):h('div',{class:'empty',text:'还没有真机评测。'})]));
   return v}
-function evalList(list){return h('table',{class:'t'},[h('thead',null,[h('tr',null,['日期','任务','协议','结果','视频'].map(x=>h('th',{text:x})))]),
+function evalList(list){return h('table',{class:'t'},[h('thead',null,[h('tr',null,['日期','任务','协议','结果','视频',''].map(x=>h('th',{text:x})))]),
   h('tbody',null,list.map(e=>{const s=e.type==='closed_loop'?trialStats(e):null;
     return h('tr',null,[h('td',{class:'n',text:e.date}),h('td',null,[h('a',{href:hashFor(e.id),text:e.task})]),h('td',{class:'n',text:e.protocol.name+' '+e.protocol.version}),
       h('td',{class:'n',text:s?(s.labeled?s.success+'/'+s.labeled+' 成功':s.n+' 次未标注'):(Object.entries((e.open_loop&&e.open_loop.metrics)||{}).slice(0,2).map(([k,x])=>k+' '+Number(x).toFixed(4)).join('，')||'无指标')}),
-      h('td',{text:s?(s.videos?s.videos+' 段':'无'):'—'})])}))])}
+      h('td',{text:s?(s.videos?s.videos+' 段':'无'):'—'}),h('td',null,[delBtn(e.id)])])}))])}
 function viewMissing(t){return h('div',null,[h('div',{class:'crumb'},[h('a',{href:'#',text:'← 全部训练'})]),h('div',{class:'empty',text:t})])}
 
 /* ================= 评测详情 ================= */
@@ -323,7 +368,7 @@ function viewEval(id){
   v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#',text:'← 全部训练'}),run?h('span',null,[' / ',h('a',{href:hashFor(run.id),text:run.name})]):null]));
   v.appendChild(h('div',null,[h('h2',{text:e.task+' · '+(e.type==='closed_loop'?'真机评测':'开环评测'),style:'font-size:20px'}),
     h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[e._sample?h('span',{class:'pill tag-sample',text:'样本'}):null,
-      h('span',{class:'sub num',text:e.id+' · '+e.date+' · checkpoint '+fmtNum(e.checkpoint.step)+' · 协议 '+e.protocol.name+' '+e.protocol.version})])]));
+      h('span',{class:'sub num',text:e.id+' · '+e.date+' · checkpoint '+fmtNum(e.checkpoint.step)+' · 协议 '+e.protocol.name+' '+e.protocol.version}),delBtn(e.id,'删除这条评测')])]));
   const hashOK=run&&(run.checkpoints.find(c=>c.step===e.checkpoint.step)||{}).sha256;
   v.appendChild(h('div',{class:'panel'},[kvTable([['训练',run?h('a',{href:hashFor(run.id),text:run.name}):e.run_id],
     ['权重哈希（实际加载）',e.checkpoint.sha256?h('span',{class:'hash',text:e.checkpoint.sha256}):missing('缺，无法确认跑的是哪个权重')],
@@ -385,12 +430,14 @@ function render(){
   renderTabs(r.v==='compare'?'compare':(r.v==='recipes'||r.v==='recipe')?'recipes':'home');
   let view;
   if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else if(r.v==='recipes')view=viewRecipes();else if(r.v==='recipe')view=viewRecipe(r.id);else view=viewHome();
+  main.appendChild(adminBar());
   main.appendChild(view);
   if(r.v==='home')renderTable();if(r.v==='compare')renderCmp();
   window.scrollTo(0,0)}
 $('#built').textContent='构建 '+DATA.built+' · '+DATA.commit;
 window.addEventListener('hashchange',render);
 render();
+detectAdmin();
 
 /* ================= 数据配方 ================= */
 const BAR_COLORS=['fill','fill minor','fill bad'];
@@ -442,7 +489,7 @@ function viewRecipe(id){
   v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#recipes',text:'← 全部配方'})]));
   v.appendChild(h('div',null,[h('h2',{text:c.name,style:'font-size:20px'}),
     h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[c._sample?h('span',{class:'pill tag-sample',text:'样本'}):null,
-      h('span',{class:'sub num',text:c.id+' · '+c.task+' · '+c.robot+(c.owner?' · '+c.owner:'')})]),
+      h('span',{class:'sub num',text:c.id+' · '+c.task+' · '+c.robot+(c.owner?' · '+c.owner:'')}),delBtn(c.id,'删除这个配方')]),
     c.parent_id?h('p',{class:'sub',style:'margin-top:6px'},['改自 ',RECIPES[c.parent_id]?h('a',{href:hashFor(c.parent_id),text:RECIPES[c.parent_id].name}):c.parent_id,'：'+(c.changes_from_parent||[]).join('；')]):null]));
   const w=[];
   if(c.notes)v.appendChild(h('p',{class:'sub',text:c.notes}));

@@ -11,6 +11,7 @@ import argparse, hashlib, json, os, re, sys, datetime, glob
 import yaml
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _common import redact
+from _admin_core import blocked_state
 
 VERSION = "tau0-importer-0.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -270,6 +271,9 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, ".local", "runs"), help="输出目录（默认 .local/，不进仓库）")
     args = ap.parse_args()
 
+    st_ = blocked_state(args.id)
+    if st_:
+        sys.exit(f"{args.id} 在删除清单里（{st_}），不导入。要重新导入，先从 records/_deleted.json 里去掉它。")
     rec, curve = build(args)
     os.makedirs(args.out, exist_ok=True)
     cdir = os.path.join(os.path.dirname(args.out.rstrip("/")), "curves")

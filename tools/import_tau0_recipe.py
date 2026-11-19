@@ -11,6 +11,7 @@ import argparse, hashlib, json, os, re, sys, datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _common import redact
+from _admin_core import blocked_state
 
 VERSION = "tau0-recipe-importer-0.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -68,6 +69,8 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, ".local", "recipes"))
     a = ap.parse_args()
 
+    if blocked_state(a.id):
+        sys.exit(f"{a.id} 在删除清单里（{blocked_state(a.id)}），不导入。")
     sp = jl(os.path.join(a.cfg_dir, "split.json"))
     fkp = os.path.join(a.cfg_dir, "frame_keep.json")
     fk = jl(fkp)

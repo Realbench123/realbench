@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "tr-ow-arx0909-s1",
+      "type": "run",
+      "state": "ignored",
+      "at": "2026-11-19T14:38:34+08:00",
+      "reason": "阶段一（单卡 1127 步被终止）不记录"
+    }
+  ]
+}
