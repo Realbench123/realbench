@@ -70,7 +70,12 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## 视频
 
-视频放 Hugging Face 公开数据集，路径 `<family>/<run_id>/<eval_id>/trial_<N>.<camera>.mp4`。页面直接用 `<video>` 播放，所以上传前会转成 H.264 + yuv420p + faststart。HF 的下载地址会 302 到 CDN，支持 Range 且允许跨域，这是我用一个公开数据集里的文件实测的；用本站播放尚未在浏览器里验证。
+视频放 Hugging Face 公开数据集，路径 `<family>/<run_id>/<eval_id>/trial_<N>.<camera>.mp4`。页面直接用 `<video>` 播放，所以上传前会转成 H.264 + yuv420p + faststart。视频数据集：<https://huggingface.co/datasets/Realbench123/realbench-videos>（公开）。
+
+播放链路的实测结果（2026-11-19，用一段合成的 4 秒测试视频，已删除）：
+- 匿名请求（不带令牌）能取到，支持 Range，返回 `access-control-allow-origin`；下载后 sha256 与上传时一致。
+- 在无头 Chrome 里，本站的 `<video>` 标签读到元数据、`play()` 成功，独立页面里拖动到 1.0 秒后能继续前进。
+- **没测的：** Safari、Firefox、手机浏览器；大文件（几十 MB）下的起播延迟；HF 对站外直链的限流策略。
 
 ## 开环协议
 
