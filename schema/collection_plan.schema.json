@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://realbench.local/schema/collection_plan.schema.json",
+  "title": "采集方案 (collection plan)",
+  "description": "数据怎么采的：遥操作方式、记录的 action 与 state 的含义、采样、客户端和代码版本。不同方案的数据 action 含义不同，不能直接混用。",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "action_recorded",
+    "state_recorded",
+    "sampling",
+    "source"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^cp-[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "robot_family": {
+      "type": "string"
+    },
+    "teleop": {
+      "type": "string",
+      "description": "遥操作方式，如 VR 手柄 + 自研 IK 关节控制"
+    },
+    "action_recorded": {
+      "type": "string",
+      "description": "action 记录的是什么，如“真正下发的关节指令”或“下一帧实测反馈”"
+    },
+    "state_recorded": {
+      "type": "string"
+    },
+    "sampling": {
+      "type": "object",
+      "properties": {
+        "fps": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "timestamps": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "safety": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "client": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "采集时的提交；读不到就 null，不要编"
+        },
+        "entry": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "启动命令，如 40_collect.sh"
+        }
+      }
+    },
+    "differs_from": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "plan_id",
+          "what"
+        ],
+        "properties": {
+          "plan_id": {
+            "type": "string"
+          },
+          "what": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "mixing_note": {
+      "type": "string",
+      "description": "与别的方案的数据混用时要注意什么"
+    },
+    "used_by_datasets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "auto-import",
+            "manual"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "imported_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "importer_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

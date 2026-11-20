@@ -262,6 +262,9 @@ def openwam_meta(d, files):
         "status": decide_status(reached, stopped, last_mtime), "smoke": smoke_of(d, ms),
     }
     curve = curve_from_rows(rows, ["loss", "video", "action", "lr"]) if rows else None
+    if rows:
+        tail = rows[-300:]   # 末段全量，不降采样：末值要用它算，降采样会把噪声放大
+        cand["tail_loss"] = {"step": [r["step"] for r in tail], "loss": [r["loss"] for r in tail]}
     return cand, curve
 
 

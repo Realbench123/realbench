@@ -29,30 +29,42 @@ def main():
     a = ap.parse_args()
 
     runs, evals, curves, recipes = [], [], {}, []
+    extra = {"datasets": [], "plans": [], "stacks": [], "groups": []}
     srcs = [(os.path.join(ROOT, "records", "runs"), os.path.join(ROOT, "records", "evals"), os.path.join(ROOT, "curves"), False, os.path.join(ROOT, "records", "recipes"))]
     if a.include_local:
         srcs.append((os.path.join(ROOT, ".local", "runs"), os.path.join(ROOT, ".local", "evals"), os.path.join(ROOT, ".local", "curves"), True, os.path.join(ROOT, ".local", "recipes")))
     for rd, ed, cd, is_local, rcd in srcs:
         for r in load_all(rd):
-            r["_sample"] = is_local or r["id"].startswith("tr-sample")
+            r["_sample"] = r["id"].startswith("tr-sample"); r["_pending"] = is_local
             runs.append(r)
             cf = os.path.join(cd, r["id"] + ".json")
             if os.path.exists(cf):
                 curves[r["id"]] = downsample(json.load(open(cf)))
         for e in load_all(ed):
-            e["_sample"] = is_local or e["id"].startswith("ev-sample")
+            e["_sample"] = e["id"].startswith("ev-sample"); e["_pending"] = is_local
             evals.append(e)
         for c in load_all(rcd):
-            c["_sample"] = is_local or c["id"].startswith("rc-sample")
+            c["_sample"] = c["id"].startswith("rc-sample"); c["_pending"] = is_local
             recipes.append(c)
+        base = os.path.dirname(rd)
+        for k in extra:
+            for x in load_all(os.path.join(base, k)):
+                x["_pending"] = is_local
+                extra[k].append(x)
     for c in recipes:
         c["used_by"] = sorted(r["id"] for r in runs if r.get("recipe_id") == c["id"])   # 由训练记录反推，不信手填
+    for d in extra["datasets"]:
+        d["used_by_recipes"] = sorted(c["id"] for c in recipes if d["id"] in (c.get("dataset_ids") or []))
+    for p in extra["plans"]:
+        p["used_by_datasets"] = sorted(d["id"] for d in extra["datasets"] if d.get("collection_plan_id") == p["id"])
+    for s in extra["stacks"]:
+        s["used_by_runs"] = sorted(r["id"] for r in runs if r.get("stack_id") == s["id"])
 
     try:
         ver = subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL).decode().strip()
     except Exception:
         ver = "无提交"
-    data = {"runs": runs, "evals": evals, "recipes": recipes, "curves": curves,
+    data = {"runs": runs, "evals": evals, "recipes": recipes, "curves": curves, **extra,
             "built": datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M"), "commit": ver}
     tpl = open(os.path.join(ROOT, "site", "src", "template.html"), encoding="utf-8").read()
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")

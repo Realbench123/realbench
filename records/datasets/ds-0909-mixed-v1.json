@@ -1,0 +1,102 @@
+{
+  "id": "ds-0909-mixed-v1",
+  "name": "0909 七任务混合（All）",
+  "batch_id": "0909-mixed",
+  "batch_note": "多天多人采集合并，已去重",
+  "derived_from": null,
+  "variant": "lerobot v3 · All",
+  "task": "pick-and-place（7 个任务）",
+  "instructions": [
+    "Pick up the L-shaped part and place it in its designated position on the board.",
+    "Pick up the T-shaped part and place it in its designated position on the board.",
+    "Pick up the banana and place it in its designated position on the board.",
+    "Pick up the red object and place it in its designated position on the board.",
+    "Pick up the blue box and place it in its designated position on the board.",
+    "Pick up the cylindrical part and place it in the upper hole on the board.",
+    "Pick up the cylindrical part and place it in the lower hole on the board."
+  ],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": "cp-arx-feedback-v4",
+  "collected": {
+    "by": null,
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "未读到。子目录名里有 0909、0910 的日期前缀，只能说明数据批次，不是采集日期",
+    "operators": null,
+    "command": null
+  },
+  "episodes": 2846,
+  "frames": 726055,
+  "fps": 30,
+  "episode_frames": {
+    "min": 75,
+    "median": 247,
+    "max": 682
+  },
+  "format": "lerobot v3.0",
+  "action_semantics": "feedback_open_joint_feedback（下一帧实测反馈；夹爪为校准后的反馈位置）",
+  "cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "validation": {
+    "status": "unverified",
+    "by": null,
+    "video_full_decode": null,
+    "source_episodes_verified": null,
+    "source_episodes_unavailable": null,
+    "checked_at": null,
+    "note": "不在数据负责人的 DATA_CATALOG.json 里（清单止于 09-08）。去重用源 hdf5 身份加独立向量和 RGB 哈希；60 FPS 的源降到 30 FPS。"
+  },
+  "success_labels": {
+    "success": null,
+    "failed": null,
+    "basis": "未读到"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "converted",
+      "label": "启智共享盘：0909_mixed_v1/All",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "各任务集数：T 652、L 647、红色 515、香蕉 450、蓝盒 358、圆柱放下孔 125、圆柱放上孔 99。643,521 是训练窗口（锚点）数，不是集数。",
+  "source": {
+    "kind": "manual",
+    "path": "0909_mixed_v1/All/meta + configs/0909_mixed_v1.md",
+    "imported_at": "2026-11-20T21:34:05+08:00",
+    "importer_version": "hand-0.1"
+  },
+  "preview": {
+    "sha256": "768b24b6775cab913ea90106be6b80893f539ec7f22d4df507c093f64606a2ea",
+    "bytes": 124700,
+    "duration_s": 9.6,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 2846,
+    "episodes": [
+      {
+        "episode_index": 1423,
+        "frames": 288,
+        "seconds": 9.6,
+        "speed": 1.0
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-0909-mixed-v1",
+    "tool": "dataset-preview-0.1",
+    "file": "ds-0909-mixed-v1.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-0909-mixed-v1.mp4"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "cp-arx-feedback-v4",
+  "name": "arx-feedback-v4（旧方案，0909 混合数据）",
+  "robot_family": "ARX LIFT2s",
+  "teleop": "未直接核实。arx_collect_v2 文档把“原方案（ROS2_LIFT_Play 08 采集）”描述为 VR 手柄经厂家 vr_slave 末端位姿控制、SDK 内部 IK；0909_mixed_v1 是否就用这套，没有证据，只是时间上更早。",
+  "action_recorded": "下一帧的实测关节反馈（uploaded_next_frame_feedback）；夹爪为校准后的反馈位置",
+  "state_recorded": "实测关节反馈；夹爪为原始反馈减去该集左右张开基线",
+  "sampling": {
+    "fps": 30,
+    "timestamps": "无额外移位或延迟补偿；60 FPS 原始数据按偶数帧降到 30 FPS，动作取 2k+2 的反馈",
+    "image_format": "未核实（arx_collect_v2 文档对原方案写的是 JPEG q50 补零，未确认适用于本批）",
+    "note": "arx.json 写明 robot_client_adapted=false"
+  },
+  "safety": [],
+  "client": {
+    "name": "未知（采集端代码的提交没读到）",
+    "repo": null,
+    "branch": null,
+    "commit": null,
+    "entry": null
+  },
+  "differs_from": [],
+  "mixing_note": "action 是反馈不是指令，滞后于指令，需要部署端做同样的转换（服务端保留 arx-feedback-v4 协议）。",
+  "used_by_datasets": [],
+  "documents": [],
+  "notes": "来自 0909_mixed_v1 的 arx.json 字段 protocol_version=arx-feedback-v4、action_semantics=feedback_open_joint_feedback。采集端代码的提交没读到。",
+  "source": {
+    "kind": "manual",
+    "path": "0909_mixed_v1/All/meta/arx.json + arx_collect_v2/README.md",
+    "imported_at": "2026-11-20T21:34:05+08:00",
+    "importer_version": "hand-0.1"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "cp-arx-collect-v2",
+  "name": "arx_collect_v2（新方案）",
+  "robot_family": "ARX LIFT2s",
+  "teleop": "VR 手柄经 vr_map_node 做标定对齐和离合，vwall_teleop 用自研 IK 算关节角，200 Hz 发关节指令（remote_slave）",
+  "action_recorded": "真正下发的关节位置指令（发布到 /arm_master_{l,r}_status）",
+  "state_recorded": "实测关节位置（/arm_slave_{l,r}_status）",
+  "sampling": {
+    "fps": 30,
+    "timestamps": "每帧带时间戳和每路数据的年龄，超时帧丢弃并计数",
+    "image_format": "JPEG q80，每帧变长存储，不补零",
+    "note": "hdf5 属性里写 format_version=arx_collect_v2/2"
+  },
+  "safety": [
+    "奇异禁区",
+    "CAD 虚拟墙（立柱、相机杆、安装板、另一只手臂）",
+    "逐关节限速",
+    "电流保护（减速/暂停/锁存）",
+    "夹爪张开尽头学习"
+  ],
+  "client": {
+    "name": "arx_collect_v2",
+    "repo": "arx_x5_lift_optimize（GitHub 分支：硬件ready版本）",
+    "branch": "硬件ready版本",
+    "commit": "1807bf2bebf4d8045ff5f4314cdf11bce794bedd",
+    "entry": "arx_collect_v2/tools/40_collect.sh（ROBOT=arx63 TASK=<数据集名> INSTRUCTION=\"…\"）"
+  },
+  "differs_from": [
+    {
+      "plan_id": "cp-arx-feedback-v4",
+      "what": "旧方案的 action 是同一帧的实测关节（或下一帧反馈），新方案是真正下发的指令；旧方案名义 60 Hz 且无时间戳"
+    }
+  ],
+  "mixing_note": "与旧方案的数据混用时 action 含义不同，不能直接合并训练；要先统一到同一种动作定义。",
+  "used_by_datasets": [],
+  "documents": [
+    {
+      "label": "采集 v2 报告",
+      "url": null
+    }
+  ],
+  "notes": "commit 1807bf2 来自叠杯、叠毛巾两份数据的 arx.json 的 source_review_commit 字段。操作者信息：叠毛巾、叠杯子的采集命令由组内同学提供。",
+  "source": {
+    "kind": "manual",
+    "path": "arx_collect_v2/README.md + 数据 hdf5 属性",
+    "imported_at": "2026-11-20T21:34:05+08:00",
+    "importer_version": "hand-0.1"
+  }
+}

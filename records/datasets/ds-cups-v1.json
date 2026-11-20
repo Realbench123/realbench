@@ -1,0 +1,103 @@
+{
+  "id": "ds-cups-v1",
+  "name": "叠杯子 cups_v1（原始 hdf5）",
+  "batch_id": "cups-v1",
+  "batch_note": "叠三个纸杯",
+  "derived_from": null,
+  "variant": "raw-hdf5",
+  "task": "stack-cups",
+  "instructions": [
+    "Stack all the paper cups on the table together."
+  ],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": "cp-arx-collect-v2",
+  "collected": {
+    "by": "组内同学（姓名暂不公开）",
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "采集日期未读到。训练侧记录里提到数据写于 11-08 和 11-09，那是文件时间，不是采集日期",
+    "operators": null,
+    "command": "cd ~/arx_x5_lift_optimize/arx_collect_v2/tools && ROBOT=arx63 TASK=cups_v1 INSTRUCTION=\"Stack all the paper cups on the table together.\" ./40_collect.sh"
+  },
+  "episodes": 172,
+  "frames": 154792,
+  "fps": 30,
+  "episode_frames": {
+    "min": 548,
+    "median": 839,
+    "max": 2233
+  },
+  "format": "hdf5（arx_collect_v2/2）",
+  "action_semantics": "joint_position_command",
+  "cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "validation": {
+    "status": "partial",
+    "by": "作者的 DATA_PROCESSING_SUMMARY.md（2026-11-10）；本记录核对了 hdf5 属性与帧数",
+    "video_full_decode": null,
+    "source_episodes_verified": 172,
+    "source_episodes_unavailable": 0,
+    "checked_at": "2026-11-10",
+    "note": "全部 robot_id=arx63、height_command=12.5。height_command 的物理单位作者说未独立核实。"
+  },
+  "success_labels": {
+    "success": 172,
+    "failed": 0,
+    "basis": "采集时的 success 标记，作者说明尚未逐条看视频验证"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "raw",
+      "label": "启智共享盘：arx_stackcups/cups_v1",
+      "url": null,
+      "verified": true
+    },
+    {
+      "where": "hf",
+      "kind": "mirror",
+      "label": "文档声明的 HF：Destiny-JTY/arx_stackcups（cups_v1）",
+      "url": "https://huggingface.co/datasets/Destiny-JTY/arx_stackcups",
+      "verified": false
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "HF 地址取自作者文档，我用匿名访问查过，该数据集不存在或不可见，所以 verified=false。",
+  "source": {
+    "kind": "manual",
+    "path": "hdf5 属性 + DATA_PROCESSING_SUMMARY.md",
+    "imported_at": "2026-11-20T21:34:05+08:00",
+    "importer_version": "hand-0.1"
+  },
+  "preview": {
+    "sha256": "6d528868f8dda25d1eddfc739676327d3e9a09d05bfc0a20387c649b52e38972",
+    "bytes": 129405,
+    "duration_s": 11.97,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 172,
+    "episodes": [
+      {
+        "episode_index": 86,
+        "frames": 605,
+        "seconds": 20.17,
+        "speed": 1.68
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选；只取遥操作生效区间（第 60 到 665 帧）；这一集采集时标为成功",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-cups-v1",
+    "tool": "hdf5-preview-0.1",
+    "file": "ds-cups-v1.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-cups-v1.mp4"
+  }
+}

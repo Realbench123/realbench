@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://realbench.local/schema/experiment_group.schema.json",
+  "title": "实验组 (experiment group)",
+  "description": "一组共用基础配置、只在少数处不同的训练（ablation）。基础配置写一次，各运行只记差异。",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "question",
+    "base_config",
+    "runs",
+    "source"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^xg-[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string",
+      "description": "这组实验要回答的问题"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "scratch",
+        "pretrain",
+        "finetune",
+        "posttrain"
+      ]
+    },
+    "base_config": {
+      "type": "object",
+      "description": "所有运行相同的配置，键值原样",
+      "properties": {
+        "init": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trainable": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action_head": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scale": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "如 128×H200（16 节点×8 卡），100k 步"
+        },
+        "nodes": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "gpus_per_node": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "max_steps": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "save_every": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "optimizer": {
+          "type": "object"
+        },
+        "precision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "distributed": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "batch": {
+          "type": "object",
+          "properties": {
+            "per_device": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "global": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "total_samples": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "action_repr": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sampling": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "images": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "shards": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extra": {
+          "type": "object"
+        }
+      }
+    },
+    "base_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dataset_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "filter": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "该数据源的过滤规则"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "对应的训练记录 id；还没导入就 null"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "differs": {
+            "type": "string",
+            "description": "相对基础配置的差异"
+          },
+          "mix": {
+            "type": "array",
+            "description": "这次运行的数据配比",
+            "items": {
+              "type": "object",
+              "required": [
+                "source"
+              ],
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "samples_per_step": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "epochs": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "downsample": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "rationale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "这样配的理由"
+          }
+        }
+      }
+    },
+    "missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "已知缺的信息（比如飞书里没导出的表），页面会显示出来"
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "auto-import",
+            "manual"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "imported_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "importer_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

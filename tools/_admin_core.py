@@ -11,24 +11,24 @@ import json, os, re, shutil, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-KIND = {"tr-": "runs", "ev-": "evals", "rc-": "recipes"}
-TYPE = {"tr-": "run", "ev-": "eval", "rc-": "recipe"}
+KIND = {"tr-": "runs", "ev-": "evals", "rc-": "recipes", "ds-": "datasets", "cp-": "plans", "st-": "stacks", "xg-": "groups"}
+TYPE = {"tr-": "run", "ev-": "eval", "rc-": "recipe", "ds-": "dataset", "cp-": "plan", "st-": "stack", "xg-": "group"}
 BASES = [os.path.join(ROOT, "records"), os.path.join(ROOT, ".local")]
 CURVES = [os.path.join(ROOT, "curves"), os.path.join(ROOT, ".local", "curves")]
 TOMB = os.path.join(ROOT, "records", "_deleted.json")
 TRASH = os.path.join(ROOT, ".local", "trash")
 
 
-ID_RE = re.compile(r"^(tr|ev|rc)-[a-z0-9][a-z0-9-]{0,80}$")
+ID_RE = re.compile(r"^(tr|ev|rc|ds|cp|st|xg)-[a-z0-9][a-z0-9-]{0,80}$")
 
 
 def _prefix(i):
     if not isinstance(i, str) or not ID_RE.match(i):
-        raise ValueError(f"id 格式不对: {str(i)[:40]!r}（只允许 tr-/ev-/rc- 加小写字母、数字、连字符）")
+        raise ValueError(f"id 格式不对: {str(i)[:40]!r}（只允许 tr-/ev-/rc-/ds-/cp-/st-/xg- 加小写字母、数字、连字符）")
     for p in KIND:
         if i.startswith(p):
             return p
-    raise ValueError(f"不认识的 id: {i}（应以 tr-、ev-、rc- 开头）")
+    raise ValueError(f"不认识的 id: {i}（应以 tr-、ev-、rc-、ds-、cp-、st-、xg- 开头）")
 
 
 def _jload(p):
@@ -125,6 +125,33 @@ def plan(i):
         for _, c in load_kind("recipes"):
             if c.get("parent_id") == i:
                 out["blockers"].append(f"配方 {c['id']}（{c['name']}）以它为 parent")
+        for _, c in load_kind("datasets"):
+            pass
+    elif pre == "ds-":
+        for _, r in load_kind("recipes"):
+            if i in (r.get("dataset_ids") or []):
+                out["blockers"].append(f"配方 {r['id']}（{r['name']}）引用了这个数据集")
+        for _, d in load_kind("datasets"):
+            if d.get("derived_from") == i:
+                out["blockers"].append(f"数据集 {d['id']}（{d['name']}）派生自它")
+        for _, g in load_kind("groups"):
+            for s in g.get("base_sources", []):
+                if i in (s.get("dataset_ids") or []):
+                    out["blockers"].append(f"实验组 {g['id']}（{g['name']}）的数据源引用了它")
+    elif pre == "cp-":
+        for _, d in load_kind("datasets"):
+            if d.get("collection_plan_id") == i:
+                out["blockers"].append(f"数据集 {d['id']}（{d['name']}）用了这个采集方案")
+        for _, p in load_kind("plans"):
+            for df in p.get("differs_from", []):
+                if df.get("plan_id") == i:
+                    out["blockers"].append(f"采集方案 {p['id']} 的对比里引用了它")
+    elif pre == "st-":
+        for _, r in load_kind("runs"):
+            if r.get("stack_id") == i:
+                out["blockers"].append(f"训练 {r['id']}（{r['name']}）用了这个训练栈")
+    elif pre == "xg-":
+        pass
     out["public"] = any(d["public"] for d in out["delete"])
     return out
 

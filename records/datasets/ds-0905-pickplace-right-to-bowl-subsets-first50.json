@@ -1,0 +1,90 @@
+{
+  "id": "ds-0905-pickplace-right-to-bowl-subsets-first50",
+  "name": "0905_pickplace_right_to_bowl · subsets/first50",
+  "batch_id": "0905-pickplace-right-to-bowl",
+  "batch_note": "已归档（0906 之前）",
+  "derived_from": null,
+  "variant": "subsets/first50",
+  "task": "",
+  "instructions": [],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": null,
+  "collected": {
+    "by": null,
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "清单的日期策略：retain approved dates; fallback file timestamps Asia/Shanghai; 0902_arx_pickplace and 0907_L_right_2 are metadata/file-d",
+    "operators": null,
+    "command": null
+  },
+  "episodes": 50,
+  "frames": 15814,
+  "fps": 30,
+  "episode_frames": {
+    "min": null,
+    "median": null,
+    "max": null
+  },
+  "format": "lerobot v3.0",
+  "action_semantics": "state_t_plus_1",
+  "cameras": [],
+  "validation": {
+    "status": "verified",
+    "by": "数据负责人维护的 DATA_CATALOG.json",
+    "video_full_decode": true,
+    "source_episodes_verified": 50,
+    "source_episodes_unavailable": 0,
+    "checked_at": "2026-09-08T09:32:55+0000",
+    "note": "视频文件 3 个；校验方法 未记录；边界抽样 100 处"
+  },
+  "success_labels": {
+    "success": null,
+    "failed": null,
+    "basis": "清单未给成败标签"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "converted",
+      "label": "启智共享盘：0905_pickplace_right_to_bowl/subsets/first50",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "",
+  "source": {
+    "kind": "auto-import",
+    "path": "DATA_CATALOG.json（启智共享盘）",
+    "imported_at": "2026-11-20T21:25:18+08:00",
+    "importer_version": "catalog-importer-0.1"
+  },
+  "preview": {
+    "sha256": "0d51d6ea2c176ff3ba17c51e90aa504185db21fc88186dfc7d7e3d238c0bd86a",
+    "bytes": 110565,
+    "duration_s": 9.83,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 50,
+    "episodes": [
+      {
+        "episode_index": 25,
+        "frames": 293,
+        "seconds": 9.77,
+        "speed": 1.0
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-0905-pickplace-right-to-bowl-subsets-first50",
+    "tool": "dataset-preview-0.1",
+    "file": "ds-0905-pickplace-right-to-bowl-subsets-first50.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-0905-pickplace-right-to-bowl-subsets-first50.mp4"
+  }
+}

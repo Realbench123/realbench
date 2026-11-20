@@ -1,0 +1,103 @@
+{
+  "id": "ds-blue-v2",
+  "name": "叠毛巾 blue_v2（原始 hdf5）",
+  "batch_id": "blue-v2",
+  "batch_note": "叠蓝色毛巾",
+  "derived_from": null,
+  "variant": "raw-hdf5",
+  "task": "fold-blue-fabric",
+  "instructions": [
+    "Fold the blue fabric."
+  ],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": "cp-arx-collect-v2",
+  "collected": {
+    "by": "组内同学（姓名暂不公开）",
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "采集日期未读到。hdf5 文件修改日期是 11-09（52）、11-10（24）、11-12（75），那是文件时间，不一定是采集日期",
+    "operators": null,
+    "command": "cd ~/arx_x5_lift_optimize/arx_collect_v2/tools && ROBOT=arx63 TASK=blue_v2 INSTRUCTION=\"Fold the blue fabric.\" ./40_collect.sh"
+  },
+  "episodes": 151,
+  "frames": 143361,
+  "fps": 30,
+  "episode_frames": {
+    "min": 379,
+    "median": 683,
+    "max": 3812
+  },
+  "format": "hdf5（arx_collect_v2/2）",
+  "action_semantics": "joint_position_command",
+  "cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "validation": {
+    "status": "partial",
+    "by": "本记录核对了 hdf5 属性与帧数；转换版本由数据负责人做过完整性验证",
+    "video_full_decode": null,
+    "source_episodes_verified": 151,
+    "source_episodes_unavailable": 0,
+    "checked_at": null,
+    "note": "其中 1 集的 meta 记录了右臂 j5 电流 4.32 超过严重阈值 4.30 持续 20 ms 触发 HOLD；没有判断它对训练的影响。"
+  },
+  "success_labels": {
+    "success": 147,
+    "failed": 4,
+    "basis": "hdf5 属性 success：失败的是源 episode 0、1、23、27。与数据准备文档一致：0、1、23 只放验证，27 被排除"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "raw",
+      "label": "启智共享盘：fold_blue/blue_v2",
+      "url": null,
+      "verified": true
+    },
+    {
+      "where": "hf",
+      "kind": "mirror",
+      "label": "文档声明的 HF：Destiny-JTY/fold_blue",
+      "url": "https://huggingface.co/datasets/Destiny-JTY/fold_blue",
+      "verified": false
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "原始 151 集，选定 150 集（排除源 episode 27）时的帧数是 142,217。HF 地址取自模型卡的 datasets 字段，匿名查不到。",
+  "source": {
+    "kind": "manual",
+    "path": "hdf5 属性 + DATA_PREPARATION.md",
+    "imported_at": "2026-11-20T21:34:05+08:00",
+    "importer_version": "hand-0.1"
+  },
+  "preview": {
+    "sha256": "585dbf02d32f9d4c386ecc0279e9d52322cc98373f30d54648c8706a0e1a6887",
+    "bytes": 186947,
+    "duration_s": 11.97,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 151,
+    "episodes": [
+      {
+        "episode_index": 75,
+        "frames": 416,
+        "seconds": 13.87,
+        "speed": 1.16
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选；只取遥操作生效区间（第 40 到 456 帧）；这一集采集时标为成功",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-blue-v2",
+    "tool": "hdf5-preview-0.1",
+    "file": "ds-blue-v2.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-blue-v2.mp4"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "id": "st-pi05-lerobot",
+  "name": "π0.5（LeRobot PyTorch）· 启智 H100",
+  "family": "pi05",
+  "framework": "lerobot（独立源码快照，非 OpenPI JAX）",
+  "base_models": [
+    {
+      "name": "pi05_base",
+      "format": "LeRobot PyTorch 权重",
+      "location_label": "启智共享盘：public-models/pi05_base",
+      "sha256": null,
+      "license": null,
+      "url": null
+    }
+  ],
+  "runtime": {
+    "image": null,
+    "interpreter": ".venv-pi05/bin/python",
+    "source_snapshot": ".tools/pi05-lerobot（复制自用户已有 lerobot 源码，SHA256 清单在该目录）",
+    "snapshot_checksums": true,
+    "python": "3.12",
+    "note": "环境只增加 π0.5 所需依赖，基础 torch/transformers 从原环境只读引用。tokenizer 用 PaliGemma SentencePiece 离线转换，训练节点无需联网"
+  },
+  "compute": {
+    "platform": "启智",
+    "group": "训练区 H100",
+    "gpu_type": "H100",
+    "typical": "8×H100，每卡 batch16，全局 128，DDP，bfloat16，梯度检查点，10000 步，lr 2.5e-5，warmup 100，seed 42，每 2500 步存一次共 4 个"
+  },
+  "entrypoints": {
+    "submit": "scripts/inspire_stackcups.py 的 π0.5 分支 / 叠毛巾 scripts/submit_fold_blue.py",
+    "node": "scripts/pi05_stackcups_job.sh（叠毛巾：scripts/fold_blue_job.sh pi05）",
+    "cli": null,
+    "smoke": "同一节点先跑独立 2 步 smoke；全部 rank 成功退出、loss/grad 有限、8 卡配置正确才开始正式训练；smoke 不保存模型"
+  },
+  "config_variants": [
+    {
+      "name": "叠杯 · absolute",
+      "config_dir": "configs/pi05_stackcups",
+      "task": "stack-cups",
+      "action_mode": "absolute",
+      "differs": "同帧绝对 command[t+k]；沿用 start03 mask 和 154/18 划分；122,738 train、16,180 val 锚点",
+      "recipe_id": null,
+      "preparation_dir": "outputs/pi05_stackcups_preparation"
+    },
+    {
+      "name": "叠杯 · relative",
+      "config_dir": "configs/pi05_stackcups_relative",
+      "task": "stack-cups",
+      "action_mode": "relative",
+      "differs": "环境变量 PI05_ACTION_MODE=relative；臂相对 anchor、夹爪绝对；独立统计与输出",
+      "recipe_id": null,
+      "preparation_dir": "outputs/pi05_stackcups_relative_preparation"
+    },
+    {
+      "name": "叠毛巾 · relative",
+      "config_dir": "configs/pi05_fold_blue_relative",
+      "task": "fold-blue-fabric",
+      "action_mode": "relative",
+      "differs": "共用叠毛巾 τ₀ 的首尾 mask 与划分，独立重算统计",
+      "recipe_id": null,
+      "preparation_dir": "outputs/pi05_fold_blue_relative_preparation"
+    }
+  ],
+  "monitoring": {
+    "tensorboard": "记录 rank0 loss、梯度、学习率、显存",
+    "wandb": "离线",
+    "status_file": "outputs/pi05_stackcups_preparation/active_run.json"
+  },
+  "known_issues": [
+    {
+      "what": "首次作业停在 gpu116 的 NCCL 初始化，未训练",
+      "fix": "禁用 NVLS/RDMA 后 8 卡通信探测通过；r1 起使用此配置并先重复通信探测",
+      "seen_in": "pi05-cups-20261112 首次作业"
+    },
+    {
+      "what": "r1 已成功加载全部预训练 key 并完成首轮反向，随后 Accelerate 解包遇到 Python 3.12 distutils hook 缺失，正式训练未启动",
+      "fix": "r2 显式激活 setuptools hook",
+      "seen_in": "pi05-cups-20261112-h100-b16-r1"
+    },
+    {
+      "what": "原 τ₀ 部署服务不能直接加载 π0.5 权重",
+      "fix": "需要独立的 π0.5 推理适配",
+      "seen_in": "部署"
+    },
+    {
+      "what": "当前未启用周期性验证 loss，训练 loss 不能代替实机评估",
+      "fix": null,
+      "seen_in": "训练"
+    }
+  ],
+  "docs": [
+    {
+      "label": "π0.5 叠杯微调 README",
+      "path": "configs/pi05_stackcups/README.md"
+    }
+  ],
+  "used_by_runs": [],
+  "notes": "π0.5 的训练产物不带 run_spec.json，扫描器目前找不到，需要单独的适配器。训练配置读 train.json，状态读 active_run.json。",
+  "source": {
+    "kind": "manual",
+    "path": "configs/pi05_stackcups/README.md + INSPIRE.md",
+    "imported_at": "2026-11-20T21:34:57+08:00",
+    "importer_version": "hand-0.1"
+  }
+}

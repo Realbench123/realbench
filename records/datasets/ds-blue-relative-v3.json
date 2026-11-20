@@ -1,0 +1,96 @@
+{
+  "id": "ds-blue-relative-v3",
+  "name": "叠毛巾 blue_relative_v3（转换版，150 集）",
+  "batch_id": "blue-v2",
+  "batch_note": "叠蓝色毛巾",
+  "derived_from": "ds-blue-v2",
+  "variant": "lerobot v3 · relative",
+  "task": "fold-blue-fabric",
+  "instructions": [
+    "Fold the blue fabric."
+  ],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": "cp-arx-collect-v2",
+  "collected": {
+    "by": "组内同学（姓名暂不公开）",
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "同 ds-blue-v2",
+    "operators": null,
+    "command": null
+  },
+  "episodes": 150,
+  "frames": 142217,
+  "fps": 30,
+  "episode_frames": {
+    "min": null,
+    "median": null,
+    "max": null
+  },
+  "format": "lerobot v3.0（lossless H.264 视频，libx264rgb crf=0）",
+  "action_semantics": "joint_position_command（转换版保持原指令；relative 目标在训练时算：臂 command[t+k]−qpos[t]，夹爪绝对）",
+  "cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "validation": {
+    "status": "verified",
+    "by": "数据负责人",
+    "video_full_decode": null,
+    "source_episodes_verified": 150,
+    "source_episodes_unavailable": 0,
+    "checked_at": null,
+    "note": "arx.json 记录 conversion_complete=True，147 个视频沿用无损重编码。"
+  },
+  "success_labels": {
+    "success": 147,
+    "failed": 3,
+    "basis": "140 集成功训练 + 验证中 7 成功 3 失败（数据准备文档）"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "converted",
+      "label": "启智共享盘：fold_blue/blue_relative_v3",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "转换后总大小约 143 GB。",
+  "source": {
+    "kind": "manual",
+    "path": "fold_blue/DATA_PREPARATION.md + meta/arx.json",
+    "imported_at": "2026-11-20T21:34:05+08:00",
+    "importer_version": "hand-0.1"
+  },
+  "preview": {
+    "sha256": "0a1db3274bdb23148378da49188f249be3e90a045de120d64cabf2b9b0366b70",
+    "bytes": 181461,
+    "duration_s": 12.0,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 150,
+    "episodes": [
+      {
+        "episode_index": 75,
+        "frames": 514,
+        "seconds": 17.13,
+        "speed": 1.43
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-blue-relative-v3",
+    "tool": "dataset-preview-0.1",
+    "file": "ds-blue-relative-v3.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-blue-relative-v3.mp4"
+  }
+}

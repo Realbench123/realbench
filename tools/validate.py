@@ -46,14 +46,23 @@ def main():
     a = ap.parse_args()
     runv = Draft202012Validator(load_schema("training_run.schema.json"))
     rcv = Draft202012Validator(load_schema("recipe.schema.json"))
+    dsv = Draft202012Validator(load_schema("dataset.schema.json"))
+    cpv = Draft202012Validator(load_schema("collection_plan.schema.json"))
+    stv = Draft202012Validator(load_schema("stack.schema.json"))
+    xgv = Draft202012Validator(load_schema("experiment_group.schema.json"))
     evv = Draft202012Validator(load_schema("eval.schema.json"))
     errs, warns = [], []
     runs, evals, recipes = {}, {}, {}
-    seen_r, seen_e, seen_c = {}, {}, {}
-    dirs = [("records/runs", "records/evals", "records/recipes")]
+    datasets, plans, stacks, groups = {}, {}, {}, {}
+    seen_r, seen_e, seen_c, seen_x = {}, {}, {}, {}
+    dirs = [("records/runs", "records/evals", "records/recipes", "records")]
     if a.include_local:
-        dirs.append((".local/runs", ".local/evals", ".local/recipes"))
-    for rd, ed, cd in dirs:
+        dirs.append((".local/runs", ".local/evals", ".local/recipes", ".local"))
+    for rd, ed, cd, base in dirs:
+        pub = base == "records"
+        for tbl, sub, val in ((datasets, "datasets", dsv), (plans, "plans", cpv), (stacks, "stacks", stv), (groups, "groups", xgv)):
+            for f, x in check_dir(os.path.join(ROOT, base, sub), val, sub, errs, warns, seen_x, public=pub):
+                tbl[x["id"]] = x
         for f, r in check_dir(os.path.join(ROOT, rd), runv, "run", errs, warns, seen_r, public=rd.startswith("records")):
             runs[r["id"]] = r
         for f, e in check_dir(os.path.join(ROOT, ed), evv, "eval", errs, warns, seen_e, public=ed.startswith("records")):
@@ -65,7 +74,7 @@ def main():
     sys.path.insert(0, HERE)
     from _admin_core import tombstones
     gone = {e["id"]: e["state"] for e in tombstones()["entries"]}
-    for table in (runs, evals, recipes):
+    for table in (runs, evals, recipes, datasets, plans, stacks, groups):
         for rid in table:
             if rid in gone and not rid.endswith("-sample") and "sample" not in rid:
                 errs.append(f"{rid}: 在 records/_deleted.json 里标为 {gone[rid]}，不应再出现在记录里")
@@ -93,8 +102,57 @@ def main():
         if c.get("parent_id") and not c.get("changes_from_parent"):
             warns.append(f"{cid}: 有 parent 但没写改了什么")
 
+    # 数据集 / 采集方案 / 训练栈 / 实验组
+    for did, d in datasets.items():
+        if d.get("derived_from") and d["derived_from"] not in datasets:
+            errs.append(f"{did}: derived_from {d['derived_from']} 不存在")
+        if d.get("collection_plan_id") and d["collection_plan_id"] not in plans:
+            errs.append(f"{did}: 引用了不存在的采集方案 {d['collection_plan_id']}")
+        if not d.get("collection_plan_id"):
+            warns.append(f"{did}: 没有关联采集方案，不知道 action 的含义是怎么来的")
+        if d["episodes"] and d["frames"] and d["frames"] / d["episodes"] < 20:
+            warns.append(f"{did}: 平均每集不到 20 帧，集数或帧数可能写错")
+        if not any(l.get("verified") for l in d["locations"]):
+            warns.append(f"{did}: 所有位置都没有亲自核实过")
+        for l in d["locations"]:
+            if l["where"] == "hf" and not l.get("verified"):
+                warns.append(f"{did}: HF 位置 {l.get('label')} 只是文档声明，没核实到")
+        sl = d.get("success_labels") or {}
+        if sl.get("success") is not None and sl.get("failed") is not None and sl["success"] + sl["failed"] != d["episodes"]:
+            warns.append(f"{did}: 成功 {sl['success']} + 失败 {sl['failed']} ≠ 集数 {d['episodes']}（转换版可能排除了部分集，请在 basis 里说明）")
+    for cid_, c_ in recipes.items():
+        for ds_id in c_.get("dataset_ids", []):
+            if ds_id not in datasets:
+                errs.append(f"{cid_}: 引用了不存在的数据集 {ds_id}")
+        if not c_.get("dataset_ids"):
+            warns.append(f"{cid_}: 没有关联数据集")
+    for sid, s_ in stacks.items():
+        if not s_.get("known_issues"):
+            warns.append(f"{sid}: 没有记录已知问题")
+    for xid, g_ in groups.items():
+        labels = [r_["label"] for r_ in g_["runs"]]
+        if len(labels) != len(set(labels)):
+            errs.append(f"{xid}: 实验组里运行标签重复")
+        for r_ in g_["runs"]:
+            if r_.get("run_id") and r_["run_id"] not in runs:
+                errs.append(f"{xid}: 运行 {r_['label']} 引用了不存在的训练 {r_['run_id']}")
+            tw = [m.get("weight") for m in (r_.get("mix") or []) if m.get("weight") is not None]
+            if tw and abs(sum(tw) - 1) > 0.01 and abs(sum(tw) - 100) > 1:
+                warns.append(f"{xid}: 运行 {r_['label']} 的配比权重之和是 {sum(tw):g}，不是 1 也不是 100")
+        for s_ in g_.get("base_sources", []):
+            for ds_id in s_.get("dataset_ids", []):
+                if ds_id not in datasets:
+                    errs.append(f"{xid}: 数据源 {s_['name']} 引用了不存在的数据集 {ds_id}")
+        for m in g_.get("missing", []):
+            warns.append(f"{xid}: 缺信息：{m}")
     # 交叉检查
     for rid, r in runs.items():
+        if r.get("stack_id") and r["stack_id"] not in stacks:
+            errs.append(f"{rid}: 引用了不存在的训练栈 {r['stack_id']}")
+        if r.get("group_id") and r["group_id"] not in groups:
+            errs.append(f"{rid}: 引用了不存在的实验组 {r['group_id']}")
+        if not r.get("stack_id"):
+            warns.append(f"{rid}: 没有关联训练栈，别人不知道怎么复现")
         if r["kind"] == r.get("kind_suggested") and not r.get("kind_note"):
             warns.append(f"{rid}: 训练类型 {r['kind']} 与导入器建议相同但没有归类依据（kind_note），请确认")
         if r["kind"] != r.get("kind_suggested") and r.get("kind_suggested") not in (None, "unknown") and not r.get("kind_note"):
@@ -163,7 +221,7 @@ def main():
     for cid, c in recipes.items():
         c["used_by"] = sorted(rid for rid, r in runs.items() if r.get("recipe_id") == cid)
     if not a.quiet:
-        print(f"配方 {len(recipes)} 条，训练 {len(runs)} 条，评测 {len(evals)} 条")
+        print(f"数据集 {len(datasets)}、采集方案 {len(plans)}、训练栈 {len(stacks)}、实验组 {len(groups)}；配方 {len(recipes)}、训练 {len(runs)}、评测 {len(evals)}")
         for w in warns:
             print("警告:", w)
     for e in errs:

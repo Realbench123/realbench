@@ -1,0 +1,424 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://realbench.local/schema/dataset.schema.json",
+  "title": "数据集 (dataset)",
+  "description": "采集到的一批原始数据，或由它派生出的一个版本。同一批采集的不同派生版本放在同一个 batch_id 下。数据本体不进仓库，只记标识、统计和校验结果。",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "batch_id",
+    "task",
+    "robot",
+    "episodes",
+    "frames",
+    "fps",
+    "action_semantics",
+    "locations",
+    "source"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ds-[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "采集批次。同一批的不同动作定义、不同子集共用同一个 batch_id，页面按它分组"
+    },
+    "batch_note": {
+      "type": "string"
+    },
+    "derived_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "由哪个数据集派生（ds- id）；原始采集为 null"
+    },
+    "variant": {
+      "type": "string",
+      "description": "在批次内的版本名，如 eef-vr、joint-feedback、subsets/first50"
+    },
+    "task": {
+      "type": "string"
+    },
+    "instructions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "任务文本原文，可有多条"
+    },
+    "robot": {
+      "type": "string"
+    },
+    "collection_plan_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "采集方案 cp- id"
+    },
+    "collected": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "date_start": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "date_end": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "date_basis": {
+          "type": "string",
+          "description": "日期依据：记录 / 文件时间戳 / 推断。文件时间戳不等于采集日期"
+        },
+        "operators": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "command": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "采集命令原文"
+        }
+      }
+    },
+    "episodes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "frames": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fps": {
+      "type": "number"
+    },
+    "episode_frames": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "median": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "format": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "如 hdf5、lerobot v3.0"
+    },
+    "action_semantics": {
+      "type": "string",
+      "description": "动作的含义，决定它能不能和别的数据混用，如 joint_position_command、state_t_plus_1、calibrated_joint_feedback"
+    },
+    "cameras": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "partial",
+            "unknown"
+          ]
+        },
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "video_full_decode": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "source_episodes_verified": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "source_episodes_unavailable": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "checked_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "success_labels": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "failed": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "description": "成败标签的来源，如“采集时标记，未逐条看视频验证”"
+        }
+      }
+    },
+    "locations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "where",
+          "kind"
+        ],
+        "properties": {
+          "where": {
+            "type": "string",
+            "enum": [
+              "inspire",
+              "hf",
+              "local",
+              "machine"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "raw",
+              "converted",
+              "mirror"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "公开页面显示的名字，不含服务器路径"
+          },
+          "path": {
+            "type": "string",
+            "description": "仅本机记录保留；写入 records/ 前由校验器拦截内部路径"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "是否亲自核实过这个位置存在"
+          }
+        }
+      }
+    },
+    "used_by_recipes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "由构建脚本反推，不必手填"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "auto-import",
+            "manual"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "imported_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "importer_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "preview": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "这个数据集的预览视频：每个数据集一条，多路相机并排，按 episode_index 均匀取几集拼成。不是精选。url 为空表示还没有公开，只在本机预览里能播。",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "sha256",
+        "bytes",
+        "duration_s",
+        "views",
+        "episodes",
+        "selection"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "公开可播的地址（HF）。没上传时为 null"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "duration_s": {
+          "type": "number"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "codec": {
+          "type": "string"
+        },
+        "pix_fmt": {
+          "type": "string"
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "从左到右的相机"
+        },
+        "episodes_total": {
+          "type": "integer"
+        },
+        "episodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "episode_index",
+              "seconds",
+              "speed"
+            ],
+            "properties": {
+              "episode_index": {
+                "type": "integer"
+              },
+              "frames": {
+                "type": "integer"
+              },
+              "seconds": {
+                "type": "number"
+              },
+              "speed": {
+                "type": "number",
+                "description": "倍速；1 表示原速"
+              }
+            }
+          }
+        },
+        "selection": {
+          "type": "string"
+        },
+        "max_clip_s": {
+          "type": "number"
+        },
+        "shared_with": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "共用同一份视频素材的其它数据集（只是动作定义不同）"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

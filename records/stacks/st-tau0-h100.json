@@ -1,0 +1,114 @@
+{
+  "id": "st-tau0-h100",
+  "name": "τ₀（tau0_vla）· 启智 H100",
+  "family": "tau0",
+  "framework": "tau0_vla",
+  "base_models": [
+    {
+      "name": "tau-0-vla-base",
+      "format": "HF transformers（Qwen3.5 + tau_vla 动作专家）",
+      "location_label": "启智共享盘：checkpoints/tau-0-vla-base",
+      "sha256": null,
+      "license": null,
+      "url": null
+    }
+  ],
+  "runtime": {
+    "image": "ngc-pytorch-tau-vla-0624:0.0.1",
+    "interpreter": "仓库 .venv-h100/bin/python（解释器在共享盘 .tools/h100-python，经 .pth 引用现有 .venv 的训练依赖，二者必须一起保留）",
+    "source_snapshot": null,
+    "snapshot_checksums": null,
+    "python": null,
+    "note": "避免训练期间更新共享依赖"
+  },
+  "compute": {
+    "platform": "启智",
+    "group": "训练区-H100-cuda13.2版本-183核（配额提交前要实时查询）",
+    "gpu_type": "H100",
+    "typical": "8×H100，每卡 batch16，全局 128，累积 1"
+  },
+  "entrypoints": {
+    "submit": "scripts/inspire_stackcups.py（叠毛巾：scripts/submit_fold_blue.py）",
+    "node": "scripts/inspire_stackcups_job.sh（叠毛巾：scripts/fold_blue_job.sh tau0）",
+    "cli": "bash scripts/inspire.sh",
+    "smoke": "每个任务先跑 2 步 smoke 再从 base 正式训练"
+  },
+  "config_variants": [
+    {
+      "name": "叠杯 · 基础",
+      "config_dir": "configs/arx_stackcups",
+      "task": "stack-cups",
+      "action_mode": "command",
+      "differs": "用户指定每卡 batch16、8 卡全局 128、累积 1",
+      "recipe_id": null,
+      "preparation_dir": null
+    },
+    {
+      "name": "叠杯 · start03",
+      "config_dir": "configs/arx_stackcups_start03",
+      "task": "stack-cups",
+      "action_mode": "command",
+      "differs": "运动检测起点前保留 9 帧；独立 mask 与训练集统计",
+      "recipe_id": null,
+      "preparation_dir": "outputs/arx_stackcups_start03_preparation"
+    },
+    {
+      "name": "叠杯 · start03 绝对关节目标",
+      "config_dir": "configs/arx_stackcups_start03_abs",
+      "task": "stack-cups",
+      "action_mode": "absolute",
+      "differs": "沿用 start03 的 mask/split/训练参数，独立重算绝对目标统计；部署要配套 runtime 和 unified_relative_action=false 的 DataSpec v3",
+      "recipe_id": null,
+      "preparation_dir": "outputs/arx_stackcups_start03_abs_preparation"
+    },
+    {
+      "name": "叠毛巾 · relative",
+      "config_dir": "configs/arx_fold_blue_relative",
+      "task": "fold-blue-fabric",
+      "action_mode": "relative",
+      "differs": "运动前保留 0.3s、运动后保留 0.5s；臂相对 anchor、夹爪绝对；140 成功训练 + 7 成功 3 失败验证",
+      "recipe_id": null,
+      "preparation_dir": "outputs/fold_blue_preparation"
+    }
+  ],
+  "monitoring": {
+    "tensorboard": "outputs/arx_stackcups_monitor/tensorboard/<run-name>",
+    "wandb": "默认离线",
+    "status_file": "outputs/arx_stackcups_monitor/"
+  },
+  "known_issues": [
+    {
+      "what": "训练脚本里有硬断言：device_count==8 且全部是 H100",
+      "fix": "在 H200 或少于 8 卡上不能直接用官方脚本，要自己写启动脚本绕过",
+      "seen_in": "在 8×H200 机器上用 4 卡训练 train-time RTC 时遇到"
+    },
+    {
+      "what": "缺 CUDA_HOME 时 deepspeed 导入失败，报错表现为 TrainingArguments 的 parse_dict 失败，像配置错误",
+      "fix": "设 CUDA_HOME 指向 cuda-stub，并设 CC、CXX",
+      "seen_in": "云端 train-time RTC 训练"
+    },
+    {
+      "what": "run_spec.json 里的 notes 与硬件描述可能写错（叠毛巾 RTC 的 notes 写 8×H100 但实际 4 卡）",
+      "fix": "硬件以训练日志里的 world_size 为准",
+      "seen_in": "叠毛巾 τ₀ train-time RTC 训练（记录待登记）"
+    }
+  ],
+  "docs": [
+    {
+      "label": "INSPIRE.md（启智共享资产索引）",
+      "path": "INSPIRE.md"
+    },
+    {
+      "label": "INSPIRE_DEPLOYMENT.md",
+      "path": "configs/arx_stackcups/INSPIRE_DEPLOYMENT.md"
+    }
+  ],
+  "used_by_runs": [],
+  "notes": "凭据和带令牌的地址不放在这里。",
+  "source": {
+    "kind": "manual",
+    "path": "INSPIRE.md + configs/",
+    "imported_at": "2026-11-20T21:34:57+08:00",
+    "importer_version": "hand-0.1"
+  }
+}

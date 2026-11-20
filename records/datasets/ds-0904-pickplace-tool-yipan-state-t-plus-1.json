@@ -1,0 +1,90 @@
+{
+  "id": "ds-0904-pickplace-tool-yipan-state-t-plus-1",
+  "name": "0904_pickplace_tool_yipan · state_t_plus_1",
+  "batch_id": "0904-pickplace-tool-yipan",
+  "batch_note": "已归档（0906 之前）",
+  "derived_from": null,
+  "variant": "state_t_plus_1",
+  "task": "",
+  "instructions": [],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": null,
+  "collected": {
+    "by": null,
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "清单的日期策略：retain approved dates; fallback file timestamps Asia/Shanghai; 0902_arx_pickplace and 0907_L_right_2 are metadata/file-d",
+    "operators": null,
+    "command": null
+  },
+  "episodes": 49,
+  "frames": 16717,
+  "fps": 30,
+  "episode_frames": {
+    "min": null,
+    "median": null,
+    "max": null
+  },
+  "format": "lerobot v3.0",
+  "action_semantics": "state_t_plus_1",
+  "cameras": [],
+  "validation": {
+    "status": "verified",
+    "by": "数据负责人维护的 DATA_CATALOG.json",
+    "video_full_decode": true,
+    "source_episodes_verified": 49,
+    "source_episodes_unavailable": 0,
+    "checked_at": "2026-09-08T09:32:55+0000",
+    "note": "视频文件 3 个；校验方法 未记录；边界抽样 98 处"
+  },
+  "success_labels": {
+    "success": null,
+    "failed": null,
+    "basis": "清单未给成败标签"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "converted",
+      "label": "启智共享盘：0904_pickplace_tool_yipan/state_t_plus_1",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "",
+  "source": {
+    "kind": "auto-import",
+    "path": "DATA_CATALOG.json（启智共享盘）",
+    "imported_at": "2026-11-20T21:25:18+08:00",
+    "importer_version": "catalog-importer-0.1"
+  },
+  "preview": {
+    "sha256": "dc20d51b2446b47821c6c9323aa23c34c1a5a56ff8f941e748c0c1cd228a12ad",
+    "bytes": 138807,
+    "duration_s": 12.0,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 49,
+    "episodes": [
+      {
+        "episode_index": 24,
+        "frames": 474,
+        "seconds": 15.8,
+        "speed": 1.32
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-0904-pickplace-tool-yipan-state-t-plus-1",
+    "tool": "dataset-preview-0.1",
+    "file": "ds-0904-pickplace-tool-yipan-state-t-plus-1.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-0904-pickplace-tool-yipan-state-t-plus-1.mp4"
+  }
+}

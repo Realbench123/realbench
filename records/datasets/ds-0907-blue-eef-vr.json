@@ -1,0 +1,93 @@
+{
+  "id": "ds-0907-blue-eef-vr",
+  "name": "0907_blue · eef-vr",
+  "batch_id": "0907-blue",
+  "batch_note": "",
+  "derived_from": null,
+  "variant": "eef-vr",
+  "task": "",
+  "instructions": [],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": null,
+  "collected": {
+    "by": null,
+    "date_start": null,
+    "date_end": null,
+    "date_basis": "清单的日期策略：retain approved dates; fallback file timestamps Asia/Shanghai; 0902_arx_pickplace and 0907_L_right_2 are metadata/file-d",
+    "operators": null,
+    "command": null
+  },
+  "episodes": 52,
+  "frames": 36494,
+  "fps": 30,
+  "episode_frames": {
+    "min": null,
+    "median": null,
+    "max": null
+  },
+  "format": "lerobot v3.0",
+  "action_semantics": "calibrated_eef_vr",
+  "cameras": [],
+  "validation": {
+    "status": "verified",
+    "by": "数据负责人维护的 DATA_CATALOG.json",
+    "video_full_decode": true,
+    "source_episodes_verified": 52,
+    "source_episodes_unavailable": 0,
+    "checked_at": "2026-09-08T09:32:55+0000",
+    "note": "视频文件 156 个；校验方法 current_full_decode,prior_full_pixel_exact_decode_plus_current_sha256；边界抽样 104 处"
+  },
+  "success_labels": {
+    "success": null,
+    "failed": null,
+    "basis": "清单未给成败标签"
+  },
+  "locations": [
+    {
+      "where": "inspire",
+      "kind": "converted",
+      "label": "启智共享盘：0907_blue/eef-vr",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "",
+  "source": {
+    "kind": "auto-import",
+    "path": "DATA_CATALOG.json（启智共享盘）",
+    "imported_at": "2026-11-20T21:25:18+08:00",
+    "importer_version": "catalog-importer-0.1"
+  },
+  "preview": {
+    "sha256": "b1d10c4f8fbf29480b59d229eab29625a9140084855f3611f84d13e788a66ddf",
+    "bytes": 141586,
+    "duration_s": 12.0,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuv420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 52,
+    "episodes": [
+      {
+        "episode_index": 26,
+        "frames": 582,
+        "seconds": 19.4,
+        "speed": 1.62
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选",
+    "max_clip_s": 12.0,
+    "shared_with": [
+      "ds-0907-blue-joint-feedback",
+      "ds-0907-blue-joint-vr"
+    ],
+    "owner": "ds-0907-blue-eef-vr",
+    "tool": "dataset-preview-0.1",
+    "file": "ds-0907-blue-eef-vr.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-0907-blue-eef-vr.mp4"
+  }
+}

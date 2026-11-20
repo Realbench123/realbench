@@ -18,6 +18,7 @@ import _admin_core as core
 
 ROOT = core.ROOT
 DIST = os.path.join(ROOT, "site", "dist", "index.html")
+PREVIEWS = os.path.join(ROOT, ".local", "previews")
 LOCK = threading.Lock()
 
 
@@ -50,6 +51,45 @@ def make_handler(port, token, include_local):
         def _host_ok(self):
             return self.headers.get("Host", "") in hosts
 
+        def _preview(self):
+            """本机预览视频，支持 Range（浏览器拖进度条要用）。文件名只允许 ds-xxx.mp4，不能带路径。"""
+            import re as _re
+            name = self.path[len("/preview/"):].split("?", 1)[0]
+            if not _re.fullmatch(r"ds-[a-z0-9][a-z0-9-]{0,80}\.mp4", name):
+                return self._send(400, {"error": "文件名不合法"})
+            p = os.path.join(PREVIEWS, name)
+            if not os.path.isfile(p):
+                return self._send(404, {"error": "没有这个预览"})
+            size = os.path.getsize(p)
+            a, b, code = 0, size - 1, 200
+            rg = self.headers.get("Range", "")
+            m = _re.fullmatch(r"bytes=(\d*)-(\d*)", rg)
+            if m and (m.group(1) or m.group(2)):
+                if m.group(1):
+                    a = int(m.group(1))
+                    b = int(m.group(2)) if m.group(2) else size - 1
+                else:
+                    a = max(0, size - int(m.group(2)))
+                b = min(b, size - 1)
+                if a > b:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.end_headers()
+                    return
+                code = 206
+            with open(p, "rb") as f:
+                f.seek(a)
+                data = f.read(b - a + 1)
+            self.send_response(code)
+            self.send_header("Content-Type", "video/mp4")
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Length", str(len(data)))
+            if code == 206:
+                self.send_header("Content-Range", f"bytes {a}-{b}/{size}")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(data)
+
         def do_GET(self):
             if not self._host_ok():
                 return self._send(403, {"error": "host"})
@@ -57,6 +97,8 @@ def make_handler(port, token, include_local):
                 if not os.path.exists(DIST):
                     return self._send(404, {"error": "还没有生成站点，先运行 tools/build_site.py"})
                 return self._send(200, body=open(DIST, "rb").read(), ctype="text/html; charset=utf-8")
+            if self.path.startswith("/preview/"):
+                return self._preview()
             if self.path == "/api/ping":
                 return self._send(200, {"admin": True, "token": token})
             return self._send(404, {"error": "not found"})

@@ -4,124 +4,442 @@
   "title": "训练运行 (training run)",
   "description": "一次训练的核心记录。配置层从训练产物自动导入，类型与去向由人确认。",
   "type": "object",
-  "required": ["id", "name", "kind", "base", "data", "hparams", "hardware", "code", "status", "source"],
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "base",
+    "data",
+    "hparams",
+    "hardware",
+    "code",
+    "status",
+    "source"
+  ],
   "additionalProperties": false,
   "properties": {
-    "id": {"type": "string", "pattern": "^tr-[a-z0-9][a-z0-9-]*$"},
-    "name": {"type": "string", "minLength": 1},
-    "owner": {"type": "string", "description": "负责人的显示名，可以是 pseudonym，不写邮箱"},
-    "family": {"type": "string", "description": "模型族，如 tau0, pi05, lingbot, wall-oss。同族才放在一起比较"},
+    "id": {
+      "type": "string",
+      "pattern": "^tr-[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "owner": {
+      "type": "string",
+      "description": "负责人的显示名，可以是 pseudonym，不写邮箱"
+    },
+    "family": {
+      "type": "string",
+      "description": "模型族，如 tau0, pi05, lingbot, wall-oss。同族才放在一起比较"
+    },
     "kind": {
       "type": "string",
-      "enum": ["scratch", "pretrain", "finetune", "posttrain"],
+      "enum": [
+        "scratch",
+        "pretrain",
+        "finetune",
+        "posttrain"
+      ],
       "description": "scratch=从头；pretrain=大规模混合数据继续预训练；finetune=从预训练基座在目标数据上训；posttrain=微调之后再加额外目标（RTC、RL、偏好等）。kind 必须人工确认，导入器只给建议值"
     },
-    "kind_note": {"type": "string", "description": "归类依据，例如 '微调 + 附加 train-time RTC 目标'"},
-    "recipe_id": {"type": ["string", "null"], "description": "引用的数据配方 id（rc-...）。同一配方可被多次训练共用；配方细节只写在配方里，这里不重复"},
-    "baseline_id": {"type": ["string", "null"], "description": "对比用的基线训练 id。页面的“与基线的差”只在这里有值时才算，不靠猜"},
-    "kind_suggested": {"type": "string", "enum": ["scratch", "pretrain", "finetune", "posttrain", "unknown"]},
+    "kind_note": {
+      "type": "string",
+      "description": "归类依据，例如 '微调 + 附加 train-time RTC 目标'"
+    },
+    "recipe_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "引用的数据配方 id（rc-...）。同一配方可被多次训练共用；配方细节只写在配方里，这里不重复"
+    },
+    "baseline_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "对比用的基线训练 id。页面的“与基线的差”只在这里有值时才算，不靠猜"
+    },
+    "kind_suggested": {
+      "type": "string",
+      "enum": [
+        "scratch",
+        "pretrain",
+        "finetune",
+        "posttrain",
+        "unknown"
+      ]
+    },
     "base": {
       "type": "object",
-      "required": ["model_path"],
+      "required": [
+        "model_path"
+      ],
       "properties": {
-        "model_path": {"type": "string"},
-        "base_run_id": {"type": ["string", "null"], "description": "若基座本身是我们训练的，填它的训练 id；否则 null"}
+        "model_path": {
+          "type": "string"
+        },
+        "base_run_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "若基座本身是我们训练的，填它的训练 id；否则 null"
+        }
       }
     },
     "data": {
       "type": "object",
-      "required": ["sources", "train_episodes", "val_episodes"],
+      "required": [
+        "sources",
+        "train_episodes",
+        "val_episodes"
+      ],
       "properties": {
         "sources": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["name", "episodes", "weight"],
+            "required": [
+              "name",
+              "episodes",
+              "weight"
+            ],
             "properties": {
-              "name": {"type": "string"},
-              "episodes": {"type": "integer", "minimum": 0},
-              "weight": {"type": ["number", "null"], "description": "采样权重或配比，未知时 null"},
-              "kind": {"type": "string", "enum": ["success", "failed", "mixed", "other"]}
+              "name": {
+                "type": "string"
+              },
+              "episodes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "weight": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "采样权重或配比，未知时 null"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "success",
+                  "failed",
+                  "mixed",
+                  "other"
+                ]
+              },
+              "epochs": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "samples_per_step": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "downsample": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           }
         },
-        "train_episodes": {"type": "integer", "minimum": 0},
-        "val_episodes": {"type": "integer", "minimum": 0},
-        "train_anchors": {"type": ["integer", "null"], "description": "训练日志里的 kept N/M frames 的 N。它是可取整块的锚点数，不是保留帧数"},
-        "split_file": {"type": ["string", "null"]},
-        "split_sha256": {"type": ["string", "null"]},
-        "config_name": {"type": "string", "description": "数据配置名，如 arx_fold_blue_relative_ft"}
+        "train_episodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "val_episodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "train_anchors": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "训练日志里的 kept N/M frames 的 N。它是可取整块的锚点数，不是保留帧数"
+        },
+        "split_file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "split_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "config_name": {
+          "type": "string",
+          "description": "数据配置名，如 arx_fold_blue_relative_ft"
+        }
       }
     },
     "hparams": {
       "type": "object",
-      "required": ["max_steps", "global_batch", "learning_rate", "scheduler", "warmup_steps", "seed"],
+      "required": [
+        "max_steps",
+        "global_batch",
+        "learning_rate",
+        "scheduler",
+        "warmup_steps",
+        "seed"
+      ],
       "properties": {
-        "max_steps": {"type": "integer", "minimum": 1},
-        "per_device_batch": {"type": ["integer", "null"]},
-        "grad_accum": {"type": ["integer", "null"]},
-        "global_batch": {"type": "integer", "minimum": 1, "description": "= per_device × grad_accum × world_size，从训练日志的 world_size 算"},
-        "learning_rate": {"type": "number"},
-        "scheduler": {"type": "string"},
-        "warmup_steps": {"type": "integer", "minimum": 0},
-        "weight_decay": {"type": ["number", "null"]},
-        "seed": {"type": ["integer", "null"]},
-        "trainable": {"type": "array", "items": {"type": "string"}, "description": "训练的模块，例如 vision, mlp, llm, dit"},
-        "extra": {"type": "object", "description": "该族特有的参数，不参与跨族对比"}
+        "max_steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "per_device_batch": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "grad_accum": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "global_batch": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "= per_device × grad_accum × world_size，从训练日志的 world_size 算"
+        },
+        "learning_rate": {
+          "type": "number"
+        },
+        "scheduler": {
+          "type": "string"
+        },
+        "warmup_steps": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "weight_decay": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "seed": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "trainable": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "训练的模块，例如 vision, mlp, llm, dit"
+        },
+        "extra": {
+          "type": "object",
+          "description": "该族特有的参数，不参与跨族对比"
+        }
       }
     },
     "hardware": {
       "type": "object",
-      "required": ["machine", "gpus"],
+      "required": [
+        "machine",
+        "gpus"
+      ],
       "properties": {
-        "machine": {"type": "string", "description": "机器名，例如 openwammutigpu 8×H200"},
-        "gpus": {"type": "integer", "minimum": 1},
-        "gpu_type": {"type": ["string", "null"]},
-        "gpu_indices": {"type": ["array", "null"], "items": {"type": "integer"}}
+        "machine": {
+          "type": "string",
+          "description": "机器名，例如 openwammutigpu 8×H200"
+        },
+        "gpus": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gpu_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gpu_indices": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer"
+          }
+        },
+        "nodes": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "gpus_per_node": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
       }
     },
     "code": {
       "type": "object",
-      "required": ["repo", "git_hash", "dirty"],
+      "required": [
+        "repo",
+        "git_hash",
+        "dirty"
+      ],
       "properties": {
-        "repo": {"type": "string"},
-        "git_hash": {"type": ["string", "null"], "description": "无版本库时为 null"},
-        "dirty": {"type": ["boolean", "null"], "description": "未知时 null"},
-        "command": {"type": ["string", "null"]},
-        "config_yaml_sha256": {"type": ["string", "null"]}
+        "repo": {
+          "type": "string"
+        },
+        "git_hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "无版本库时为 null"
+        },
+        "dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "未知时 null"
+        },
+        "command": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "config_yaml_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "time": {
       "type": "object",
       "properties": {
-        "start": {"type": ["string", "null"], "description": "ISO8601 带时区"},
-        "end": {"type": ["string", "null"]},
-        "status_reason": {"type": ["string", "null"]}
+        "start": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ISO8601 带时区"
+        },
+        "end": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
-    "status": {"type": "string", "enum": ["finished", "running", "failed", "stopped", "superseded"]},
+    "status": {
+      "type": "string",
+      "enum": [
+        "finished",
+        "running",
+        "failed",
+        "stopped",
+        "superseded"
+      ]
+    },
     "loss": {
       "type": "object",
       "properties": {
-        "first": {"type": ["number", "null"]},
-        "final": {"type": ["number", "null"]},
-        "final_window": {"type": ["integer", "null"], "description": "末值取最后 N 步的均值时的 N"},
-        "curve_file": {"type": ["string", "null"], "description": "curves/ 下的相对路径"},
-        "summary_bad": {"type": "boolean", "description": "训练器写的汇总（如 train_loss）是否不可信"}
+        "first": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "final": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "final_window": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "末值取最后 N 步的均值时的 N"
+        },
+        "curve_file": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "curves/ 下的相对路径"
+        },
+        "summary_bad": {
+          "type": "boolean",
+          "description": "训练器写的汇总（如 train_loss）是否不可信"
+        }
       }
     },
     "checkpoints": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["step", "path"],
+        "required": [
+          "step",
+          "path"
+        ],
         "properties": {
-          "step": {"type": "integer"},
-          "path": {"type": "string"},
-          "sha256": {"type": ["string", "null"]},
-          "hf_repo": {"type": ["string", "null"]},
-          "hf_revision": {"type": ["string", "null"]},
-          "kept": {"type": "boolean"}
+          "step": {
+            "type": "integer"
+          },
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hf_repo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hf_revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kept": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -131,26 +449,88 @@
       "items": {
         "type": "object",
         "properties": {
-          "checkpoint_step": {"type": "integer"},
-          "host": {"type": "string"},
-          "port": {"type": "integer"},
-          "service_started": {"type": ["string", "null"]},
-          "note": {"type": "string"}
+          "checkpoint_step": {
+            "type": "integer"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "service_started": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
         }
       }
     },
-    "evals_offline": {"type": "array", "items": {"type": "string"}, "description": "开环评测 id 列表"},
-    "evals_closed": {"type": "array", "items": {"type": "string"}, "description": "真机评测 id 列表"},
-    "notes": {"type": "string"},
+    "evals_offline": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "开环评测 id 列表"
+    },
+    "evals_closed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "真机评测 id 列表"
+    },
+    "notes": {
+      "type": "string"
+    },
     "source": {
       "type": "object",
-      "required": ["kind"],
+      "required": [
+        "kind"
+      ],
       "properties": {
-        "kind": {"type": "string", "enum": ["auto-import", "manual"]},
-        "path": {"type": "string", "description": "导入的训练产物目录（相对于写入者的机器，只作记录）"},
-        "imported_at": {"type": ["string", "null"]},
-        "importer_version": {"type": ["string", "null"]}
+        "kind": {
+          "type": "string",
+          "enum": [
+            "auto-import",
+            "manual"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "description": "导入的训练产物目录（相对于写入者的机器，只作记录）"
+        },
+        "imported_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "importer_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
+    },
+    "stack_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "训练栈 st- id"
+    },
+    "group_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "所属实验组 xg- id"
     }
   }
 }
