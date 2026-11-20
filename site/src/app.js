@@ -117,6 +117,7 @@ async function showTrash(){
 /* ---------- 路由 ---------- */
 function route(){const x=location.hash.slice(1);
   if(x==='recipes')return {v:'recipes'};
+  if(x==='real')return {v:'real'};
   if(x==='datasets')return {v:'datasets'};
   if(x==='plans')return {v:'plans'};
   if(x==='stacks')return {v:'stacks'};
@@ -135,7 +136,7 @@ function route(){const x=location.hash.slice(1);
 function hashFor(id){return id.startsWith('tr-')?'#r-'+id.slice(3):id.startsWith('rc-')?'#c-'+id.slice(3):'#e-'+id.slice(3)}
 function renderTabs(cur){const t=$('#tabs');t.textContent='';
   const n=g=>DATA.runs.filter(r=>inGroup(r,g)).length;
-  const L=[['home','总览（'+n('')+'）','#'],['ft','微调 / 后训练（'+n('ft')+'）','#train'],['pre','预训练 / 从头训（'+n('pre')+'）','#pretrain'],['groups','实验组（'+(DATA.groups||[]).length+'）','#groups'],
+  const L=[['home','总览（'+n('')+'）','#'],['ft','微调 / 后训练（'+n('ft')+'）','#train'],['pre','预训练 / 从头训（'+n('pre')+'）','#pretrain'],['real','真机测试（'+realEvals().length+'）','#real'],['groups','实验组（'+(DATA.groups||[]).length+'）','#groups'],
     ['datasets','数据集（'+(DATA.datasets||[]).length+'）','#datasets'],['recipes','数据配方（'+(DATA.recipes||[]).length+'）','#recipes'],['plans','采集方案（'+(DATA.plans||[]).length+'）','#plans'],['stacks','训练栈（'+(DATA.stacks||[]).length+'）','#stacks'],['compare','对比','#compare']];
   L.forEach(([k,l,hr])=>t.appendChild(h('a',{href:hr,text:l,'aria-current':cur===k?'page':null})))}
 
@@ -165,7 +166,7 @@ function realCell(r){
     if(!s.labeled)rate=h('span',{class:'warn num',text:s.n+' 次，成败未标注'});
     else{const pct=Math.round(s.rate*100);
       rate=h('span',{class:'num '+(s.enough?'':'warn'),text:s.success+'/'+s.labeled+' 成功（'+pct+'%）'+(s.enough?'':'，不足 '+((e.closed_loop&&e.closed_loop.min_trials_required)||3)+' 次')})}
-    const vid=s.videos?h('a',{href:hashFor(e.id)+'',text:s.videos+' 段视频'}):h('span',{class:'missing',text:'无视频'});
+    const vid=s.videos?h('a',{href:hashFor(e.id),text:s.videos+' 段视频'}):h('span',{class:'missing',text:'无视频'});
     box.appendChild(h('div',null,[head,rate,h('span',{class:'cell-sub'},[vid])]))});
   return box}
 function openCell(r){
@@ -205,7 +206,7 @@ function viewHome(group){
   const pool=DATA.runs.filter(r=>inGroup(r,group));
   const real=pool.filter(r=>closedEvalsOf(r).length).length;
   const T={'':['训练总览','微调、后训练、预训练都在这一张表里。'],ft:['微调 / 后训练','从预训练基座出发，在目标任务数据上训练；后训练指微调之后再加额外目标（RTC、RL、偏好等）。'],pre:['预训练 / 从头训','大规模混合数据上的预训练，以及随机初始化的从头训练。类型靠人工确认，导入器只给建议。']}[group];
-  v.appendChild(h('div',null,[h('h2',{text:T[0]}),h('p',{class:'sub',text:T[1]+' 一行一次训练，点训练名进入详情，点曲线可以放大。共 '+pool.length+' 次训练，其中 '+real+' 次有真机评测。'})]));
+  v.appendChild(h('div',null,[h('h2',{text:T[0]}),h('p',{class:'sub'},[T[1]+' 一行一次训练，点训练名进入详情，点曲线可以放大。共 '+pool.length+' 次训练，其中 '+real+' 次有真机评测。',h('a',{href:'#real',text:' 看全部真机测试 →'})])]));
   const kinds=[...new Set(pool.map(r=>r.kind))],fams=[...new Set(pool.map(r=>r.family).filter(Boolean))],tasks=[...new Set(pool.flatMap(tasksOf))];
   const sel=(label,key,opts,map)=>{const s=h('select',{id:'f-'+key,onchange:e=>{flt[key]=e.target.value;renderTable()}},[h('option',{value:'',text:'全部'}),...opts.map(o=>h('option',{value:o,text:map?map(o):o}))]);s.value=flt[key];return h('label',{for:'f-'+key},[label,s])};
   v.appendChild(h('div',{class:'filters'},[
@@ -396,7 +397,7 @@ function viewRun(id){
   v.appendChild(h('section',{id:'sec-open',class:'sec'},[h('h2',{text:'开环评测'}),
     openEvalsOf(r).length?h('div',{class:'panel'},[evalList(openEvalsOf(r))]):h('div',{class:'empty',text:'还没有开环评测。协议草案见 protocols/openloop-fold-v0.md，数值待组内确认。'})]));
   // 真机
-  v.appendChild(h('section',{id:'sec-real',class:'sec'},[h('h2',{text:'真机评测'}),
+  v.appendChild(h('section',{id:'sec-real',class:'sec'},[h('h2',null,['真机评测 ',h('a',{href:'#real',class:'sub',text:'（全部真机测试 →）'})]),
     closedEvalsOf(r).length?h('div',{class:'panel'},[evalList(closedEvalsOf(r))]):h('div',{class:'empty',text:'还没有真机评测。'})]));
   return v}
 function evalList(list){return h('table',{class:'t'},[h('thead',null,[h('tr',null,['日期','任务','协议','结果','视频',''].map(x=>h('th',{text:x})))]),
@@ -404,6 +405,67 @@ function evalList(list){return h('table',{class:'t'},[h('thead',null,[h('tr',nul
     return h('tr',null,[h('td',{class:'n',text:e.date}),h('td',null,[h('a',{href:hashFor(e.id),text:e.task})]),h('td',{class:'n',text:e.protocol.name+' '+e.protocol.version}),
       h('td',{class:'n',text:s?(s.labeled?s.success+'/'+s.labeled+' 成功':s.n+' 次未标注'):(Object.entries((e.open_loop&&e.open_loop.metrics)||{}).slice(0,2).map(([k,x])=>k+' '+Number(x).toFixed(4)).join('，')||'无指标')}),
       h('td',{text:s?(s.videos?s.videos+' 段':'无'):'—'}),h('td',null,[delBtn(e.id)])])}))])}
+/* ================= 真机测试（单独一页） ================= */
+function realEvals(){return (DATA.evals||[]).filter(e=>e.type==='closed_loop')}
+function rateText(s){
+  if(!s.n)return h('span',{class:'idle',text:'0 次试验'});
+  if(!s.labeled)return h('span',{class:'warn num',text:s.n+' 次，成败未标注'});
+  const pct=Math.round(s.rate*100);
+  return h('span',{class:'num '+(s.enough?'':'warn'),text:s.success+'/'+s.labeled+' 成功（'+pct+'%）'+(s.enough?'':'，不足 '+3+' 次')})}
+function realFlt(){return window.__rf||(window.__rf={task:'',robot:'',q:''})}
+function viewReal(){
+  const v=h('div',{style:'display:flex;flex-direction:column;gap:14px'});
+  const all=realEvals();
+  const tot=all.reduce((a,e)=>{const s=trialStats(e);a.n+=s.n;a.lab+=s.labeled;a.vid+=s.videos;a.unl+=s.unlabeled;return a},{n:0,lab:0,vid:0,unl:0});
+  v.appendChild(h('div',null,[h('h2',{text:'真机测试'}),h('p',{class:'sub',text:'每一行是一次真机评测（一个 checkpoint、一个任务、一套部署配置下的若干次试验）。成功率只统计已有人标注成败的试验，未标注的单独列出，不算失败也不算成功。共 '+all.length+' 次评测，'+tot.n+' 次试验，其中 '+tot.lab+' 次已标注，'+tot.vid+' 段视频。'})]));
+  if(tot.unl)v.appendChild(h('div',{class:'banner',text:'有 '+tot.unl+' 次试验还没人看视频标注成败。导入器只会给“未标注”，成败要人来判。'}));
+  if(!all.length){
+    v.appendChild(h('div',{class:'panel'},[h('h3',{text:'还没有真机评测记录'}),
+      h('p',{class:'sub',text:'真机评测记录由 tools/import_arx63_eval.py 从 63 号机的运行目录导入，成败留空待标注；视频用 tools/upload_video.py 转成 H.264 传到 HF 后写进记录。'}),
+      h('p',{class:'sub',text:'4090 上持续录制的摄像头视频要和某次评测、某次试验对上，才能出现在这里。接入方式还没定，位置先留好：下面“未归属的录像”一栏。'})]));
+    v.appendChild(unassignedBox());return v}
+  const tasks=[...new Set(all.map(e=>e.task))],robots=[...new Set(all.map(e=>(e.deployment&&e.deployment.robot)||'').filter(Boolean))];
+  const f=realFlt();
+  const sel=(label,key,opts)=>{const s=h('select',{onchange:e=>{f[key]=e.target.value;renderRealTable()}},[h('option',{value:'',text:'全部'}),...opts.map(o=>h('option',{value:o,text:o}))]);s.value=f[key];return h('label',null,[label,s])};
+  v.appendChild(h('div',{class:'filters'},[h('label',null,['搜索',h('input',{type:'search',value:f.q,placeholder:'任务、训练名、检查点',oninput:e=>{f.q=e.target.value;renderRealTable()}})]),sel('任务','task',tasks),sel('机器人','robot',robots)]));
+  v.appendChild(h('div',{id:'real-tbl',class:'scroll'}));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'最近的视频'}),h('div',{id:'real-vids',class:'videos'})]));
+  v.appendChild(unassignedBox());
+  setTimeout(renderRealTable,0);
+  return v}
+function unassignedBox(){
+  return h('section',{class:'sec'},[h('h2',{text:'未归属的录像'}),h('div',{class:'panel'},[
+    h('p',{class:'sub',text:'摄像头持续录制的视频先放在这里，还没有对应到哪一次评测、哪一次试验。对应上之后，才会出现在上面的评测里。'}),
+    h('p',{class:'sub',text:'现在是空的：4090 上的摄像头还没接入。成败不会根据录像自动判定。'})])])}
+function renderRealTable(){
+  const t=document.getElementById('real-tbl');if(!t)return;
+  const f=realFlt(),q=f.q.trim().toLowerCase();
+  const rows=realEvals().filter(e=>{
+    const r=RUNS[e.run_id];
+    if(f.task&&e.task!==f.task)return false;
+    if(f.robot&&((e.deployment&&e.deployment.robot)||'')!==f.robot)return false;
+    if(q&&!((e.task+' '+(r?r.name:'')+' '+e.id+' '+(e.instruction||'')).toLowerCase().includes(q)))return false;
+    return true}).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  t.textContent='';
+  if(!rows.length){t.appendChild(h('div',{class:'empty',text:'没有符合条件的真机评测。'}));}
+  else{
+    const tb=h('table',{class:'runs'});
+    tb.appendChild(h('thead',null,[h('tr',null,['日期','模型（训练）','checkpoint','任务','机器人','成功率','试验','视频',''].map(x=>h('th',{text:x})))]));
+    tb.appendChild(h('tbody',null,rows.map(e=>{
+      const r=RUNS[e.run_id],s=trialStats(e);
+      return h('tr',{class:'row'},[h('td',{class:'num',text:e.date||'—'}),
+        h('td',{class:'name'},r?[h('a',{href:hashFor(r.id),text:r.name}),r._pending?h('span',{class:'cell-sub',text:'待登记'}):null,h('span',{class:'cell-sub',text:KIND[r.kind]||r.kind})]:[document.createTextNode(e.run_id)]),
+        h('td',{class:'num',text:fmtNum(e.checkpoint&&e.checkpoint.step)}),h('td',{text:e.task}),h('td',{text:(e.deployment&&e.deployment.robot)||'—'}),
+        h('td',null,[rateText(s)]),
+        h('td',{class:'num',text:s.n+' 次'+(s.unlabeled&&s.labeled?'（'+s.unlabeled+' 未标注）':'')}),
+        h('td',null,[s.videos?h('span',{class:'num',text:s.videos+' 段'}):h('span',{class:'missing',text:'无'})]),
+        h('td',null,[h('a',{href:hashFor(e.id),text:'详情'})])])})));
+    t.appendChild(tb)}
+  const vids=document.getElementById('real-vids');if(!vids)return;vids.textContent='';
+  const tiles=[];
+  rows.forEach(e=>((e.closed_loop&&e.closed_loop.trials)||[]).forEach(tr=>(tr.videos||[]).forEach(x=>{if(tiles.length<12)tiles.push(videoTile(tr,x,e))})));
+  if(tiles.length)tiles.forEach(x=>vids.appendChild(x));else vids.appendChild(h('div',{class:'empty',text:'还没有真机视频。'}))}
+
 function viewMissing(t){return h('div',null,[h('div',{class:'crumb'},[h('a',{href:'#',text:'← 全部训练'})]),h('div',{class:'empty',text:t})])}
 
 /* ================= 评测详情 ================= */
@@ -484,9 +546,9 @@ function renderCmp(){
 /* ================= 启动 ================= */
 function render(){
   const r=route(),main=$('#main');main.textContent='';
-  renderTabs(r.v==='compare'?'compare':(r.v==='datasets'||r.v==='dataset')?'datasets':(r.v==='plans'||r.v==='plan')?'plans':(r.v==='stacks'||r.v==='stack')?'stacks':(r.v==='groups'||r.v==='group')?'groups':(r.v==='recipes'||r.v==='recipe')?'recipes':(r.v==='run'&&RUNS[r.id])?(GROUP.pre.includes(RUNS[r.id].kind)?'pre':'ft'):(r.v==='home'&&r.group)?r.group:'home');
+  renderTabs(r.v==='compare'?'compare':r.v==='real'?'real':(r.v==='datasets'||r.v==='dataset')?'datasets':(r.v==='plans'||r.v==='plan')?'plans':(r.v==='stacks'||r.v==='stack')?'stacks':(r.v==='groups'||r.v==='group')?'groups':(r.v==='recipes'||r.v==='recipe')?'recipes':(r.v==='run'&&RUNS[r.id])?(GROUP.pre.includes(RUNS[r.id].kind)?'pre':'ft'):(r.v==='home'&&r.group)?r.group:'home');
   let view;
-  if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else if(r.v==='recipes')view=viewRecipes();else if(r.v==='datasets')view=viewDatasets();else if(r.v==='dataset')view=viewDataset(r.id);else if(r.v==='plans')view=viewPlans();else if(r.v==='plan')view=viewPlan(r.id);else if(r.v==='stacks')view=viewStacks();else if(r.v==='stack')view=viewStack(r.id);else if(r.v==='groups')view=viewGroups();else if(r.v==='group')view=viewGroup(r.id);else if(r.v==='recipe')view=viewRecipe(r.id);else view=viewHome(r.group||'');
+  if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else if(r.v==='recipes')view=viewRecipes();else if(r.v==='real')view=viewReal();else if(r.v==='datasets')view=viewDatasets();else if(r.v==='dataset')view=viewDataset(r.id);else if(r.v==='plans')view=viewPlans();else if(r.v==='plan')view=viewPlan(r.id);else if(r.v==='stacks')view=viewStacks();else if(r.v==='stack')view=viewStack(r.id);else if(r.v==='groups')view=viewGroups();else if(r.v==='group')view=viewGroup(r.id);else if(r.v==='recipe')view=viewRecipe(r.id);else view=viewHome(r.group||'');
   main.appendChild(adminBar());
   main.appendChild(view);
   if(r.v==='home')renderTable();if(r.v==='compare')renderCmp();

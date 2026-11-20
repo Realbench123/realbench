@@ -17,13 +17,13 @@ sys.path.insert(0, HERE)
 import _admin_core as core
 
 ROOT = core.ROOT
-DIST = os.path.join(ROOT, "site", "dist", "index.html")
+DIST = os.path.join(ROOT, ".local", "preview-site", "index.html")   # 本机管理页专用，含待登记记录；不覆盖公开口径的 site/dist
 PREVIEWS = os.path.join(ROOT, ".local", "previews")
 LOCK = threading.Lock()
 
 
 def rebuild(include_local):
-    cmd = [sys.executable, os.path.join(HERE, "build_site.py")] + (["--include-local"] if include_local else [])
+    cmd = [sys.executable, os.path.join(HERE, "build_site.py"), "--out", os.path.dirname(DIST)] + (["--include-local"] if include_local else [])
     r = subprocess.run(cmd, capture_output=True, text=True)
     v = subprocess.run([sys.executable, os.path.join(HERE, "validate.py")] + (["--include-local"] if include_local else []) + ["--quiet"],
                        capture_output=True, text=True)
@@ -94,6 +94,8 @@ def make_handler(port, token, include_local):
             if not self._host_ok():
                 return self._send(403, {"error": "host"})
             if self.path in ("/", "/index.html"):
+                with LOCK:
+                    rebuild(include_local)
                 if not os.path.exists(DIST):
                     return self._send(404, {"error": "还没有生成站点，先运行 tools/build_site.py"})
                 return self._send(200, body=open(DIST, "rb").read(), ctype="text/html; charset=utf-8")
