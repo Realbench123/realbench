@@ -1,0 +1,135 @@
+{
+  "id": "tr-tau0-foldblue-rtc1116",
+  "name": "τ₀ 叠毛巾 train-time RTC（10000 步）",
+  "owner": "lerong",
+  "family": "tau0",
+  "baseline_id": null,
+  "recipe_id": "rc-tau0-foldblue-rel",
+  "kind": "finetune",
+  "kind_note": "微调：从 tau-0-vla-base 起步，附加 train-time RTC 目标。",
+  "kind_suggested": "posttrain",
+  "base": {
+    "model_path": "tau-0-vla-base",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "arx_fold_blue_relative_ft",
+        "episodes": 140,
+        "weight": null,
+        "kind": "success"
+      }
+    ],
+    "train_episodes": 140,
+    "val_episodes": 10,
+    "train_anchors": 107521,
+    "split_file": "configs/arx_fold_blue_relative/split.json",
+    "split_sha256": "d191457b74a8f738aeb36674e2fa9fa7d9e169291fc1dddf097196c659448315",
+    "config_name": "arx_fold_blue_relative_ft"
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": 16,
+    "grad_accum": 2,
+    "global_batch": 128,
+    "learning_rate": 2e-05,
+    "scheduler": "cosine",
+    "warmup_steps": 100,
+    "weight_decay": 0.01,
+    "seed": 42,
+    "trainable": [
+      "vision",
+      "mlp",
+      "llm",
+      "dit"
+    ],
+    "extra": {
+      "loss_type": "fm",
+      "num_steps": 10,
+      "training_time_rtc": true,
+      "rtc_max_delay": 12
+    }
+  },
+  "hardware": {
+    "machine": "openwammutigpu 8×H200（GPU 4–7，用 4 卡）",
+    "gpus": 4,
+    "gpu_type": "H200",
+    "gpu_indices": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "code": {
+    "repo": "tau0_vla",
+    "git_hash": "aef7631c27f2a1765cf5c9a2ec09036842afa5ba",
+    "dirty": true,
+    "command": "src/tau0_vla/trainer/train.py train_rtc.yaml --run_name rtc-1116 --output_dir runs",
+    "config_yaml_sha256": "297e4b344656bb887edaf55ea84eb5311efd75d9bc3e54b06fec1df5bde0e1fd"
+  },
+  "time": {
+    "start": "2026-11-16T22:56:14+08:00",
+    "end": "2026-11-17T06:59:49+08:00",
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.177001953125,
+    "final": 0.00807575225830078,
+    "final_window": 10,
+    "curve_file": "curves/tr-tau0-foldblue-rtc1116.json",
+    "summary_bad": false
+  },
+  "checkpoints": [
+    {
+      "step": 8500,
+      "path": "checkpoint-8500",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    },
+    {
+      "step": 9000,
+      "path": "checkpoint-9000",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    },
+    {
+      "step": 9500,
+      "path": "checkpoint-9500",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    },
+    {
+      "step": 10000,
+      "path": "model.safetensors",
+      "sha256": "f16895c6a824de64bfbc86da0957d46625ea9c53625e6619c443cba1b41b421f",
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    }
+  ],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [
+    "ev-63-trainrtc-ts13-60s",
+    "ev-63-trainrtc-ts10-60s",
+    "ev-63-trainrtc-ts10-90s",
+    "ev-63-trainrtc-blend12-90s"
+  ],
+  "notes": "[导入器] 起止时间来自 run_spec 或训练日志，原文无时区，按 UTC+0 解释。 [导入器核对] 全局 batch 128（16×2×4）；由训练器汇总反推为 127.9，一致。",
+  "source": {
+    "kind": "auto-import",
+    "path": "rtc1116",
+    "imported_at": "2026-11-20T17:18:42+08:00",
+    "importer_version": "tau0-importer-0.1"
+  },
+  "stack_id": "st-tau0-h100"
+}

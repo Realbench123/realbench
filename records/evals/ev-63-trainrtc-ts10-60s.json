@@ -1,0 +1,84 @@
+{
+  "id": "ev-63-trainrtc-ts10-60s",
+  "type": "closed_loop",
+  "date": "2026-11-17",
+  "owner": "lerong",
+  "run_id": "tr-tau0-foldblue-rtc1116",
+  "checkpoint": {
+    "step": 10000,
+    "sha256": "f16895c6a824de64bfbc86da0957d46625ea9c53625e6619c443cba1b41b421f"
+  },
+  "task": "fold-blue-fabric",
+  "instruction": "Fold the blue fabric.",
+  "protocol": {
+    "name": "closed-loop-v0",
+    "version": "draft"
+  },
+  "deployment": {
+    "robot": "arx63",
+    "driver": "kd=5",
+    "server": {
+      "host": "127.0.0.1(经转发)",
+      "port": 10091,
+      "protocol": null,
+      "started": null,
+      "model_dir": null
+    },
+    "client": {
+      "name": "policy_client_cmd.py",
+      "git_hash": null,
+      "args": {
+        "seconds": 60.0,
+        "replan": 12,
+        "blend": 6,
+        "blend_shape": "linear",
+        "speed": 1.0,
+        "time_scale": 1.0,
+        "rtc_mode": "train",
+        "rtc_prefix": 0,
+        "rtc_weight": 10.0,
+        "rtc_margin": 1,
+        "gripper_vmax": 2.0,
+        "vmax": null
+      },
+      "loop_hz": 162.7
+    },
+    "extra": {
+      "loop_hz_per_trial": [
+        162.7
+      ]
+    }
+  },
+  "prediction": {
+    "text": "",
+    "falsified_if": null,
+    "written_at": null,
+    "after_the_fact": true
+  },
+  "closed_loop": {
+    "trials": [
+      {
+        "n": 1,
+        "result": "unlabeled",
+        "duration_s": 60.0,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_195259",
+        "videos": [],
+        "note": "原始记录 36 个分片，0 个请求"
+      }
+    ],
+    "min_trials_required": 3
+  },
+  "conclusion": "",
+  "tags": [
+    "train-time-rtc",
+    "63-realrobot"
+  ],
+  "source": {
+    "kind": "auto-import",
+    "path": "arx63_runs",
+    "imported_at": "2026-11-20T23:18:15+08:00",
+    "importer_version": "arx63-importer-0.1"
+  }
+}

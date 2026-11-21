@@ -1,0 +1,175 @@
+{
+  "id": "ev-63-trainrtc-ts10-90s",
+  "type": "closed_loop",
+  "date": "2026-11-17",
+  "owner": "lerong",
+  "run_id": "tr-tau0-foldblue-rtc1116",
+  "checkpoint": {
+    "step": 10000,
+    "sha256": "f16895c6a824de64bfbc86da0957d46625ea9c53625e6619c443cba1b41b421f"
+  },
+  "task": "fold-blue-fabric",
+  "instruction": "Fold the blue fabric.",
+  "protocol": {
+    "name": "closed-loop-v0",
+    "version": "draft"
+  },
+  "deployment": {
+    "robot": "arx63",
+    "driver": "kd=5",
+    "server": {
+      "host": "127.0.0.1(经转发)",
+      "port": 10091,
+      "protocol": null,
+      "started": null,
+      "model_dir": null
+    },
+    "client": {
+      "name": "policy_client_cmd.py",
+      "git_hash": null,
+      "args": {
+        "seconds": 90.0,
+        "replan": 12,
+        "blend": 6,
+        "blend_shape": "linear",
+        "speed": 1.0,
+        "time_scale": 1.0,
+        "rtc_mode": "train",
+        "rtc_prefix": 0,
+        "rtc_weight": 10.0,
+        "rtc_margin": 1,
+        "gripper_vmax": 2.0,
+        "vmax": null
+      },
+      "loop_hz": 160.0
+    },
+    "extra": {
+      "loop_hz_per_trial": [
+        158.8,
+        160.1,
+        159.6,
+        157.7,
+        164.1,
+        159.4
+      ]
+    }
+  },
+  "prediction": {
+    "text": "",
+    "falsified_if": null,
+    "written_at": null,
+    "after_the_fact": true
+  },
+  "closed_loop": {
+    "trials": [
+      {
+        "n": 1,
+        "result": "unlabeled",
+        "duration_s": 90.0,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_201608",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts10-90s/trial_1.head.mp4",
+            "sha256": "d0262e4db8793c55bd378d4d1b5b3c43039695ab80dd91d9bf555eb38588877c"
+          }
+        ],
+        "note": "原始记录 51 个分片，224 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      },
+      {
+        "n": 2,
+        "result": "unlabeled",
+        "duration_s": 90.0,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_202814",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts10-90s/trial_2.head.mp4",
+            "sha256": "9d04d89869f131ab2a7ad3d4e418e1336fcf79fef531a2f6713360b7a52137a8"
+          }
+        ],
+        "note": "原始记录 51 个分片，224 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      },
+      {
+        "n": 3,
+        "result": "unlabeled",
+        "duration_s": 90.0,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_203228",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts10-90s/trial_3.head.mp4",
+            "sha256": "89d626022894ba3ac1645e43e37de0c3053345f1e470fc41acee1bc9687fded9"
+          }
+        ],
+        "note": "原始记录 51 个分片，224 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      },
+      {
+        "n": 4,
+        "result": "unlabeled",
+        "duration_s": 90.0,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_204500",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts10-90s/trial_4.head.mp4",
+            "sha256": "ee141905b4ce58e21c282416c5a2c91a0b7e83fa9e4f723fc2374463dbf00824"
+          }
+        ],
+        "note": "原始记录 48 个分片，224 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      },
+      {
+        "n": 5,
+        "result": "unlabeled",
+        "duration_s": 60.8,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_215126",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts10-90s/trial_5.head.mp4",
+            "sha256": "bca70ac7f6e6753e8a960882f7db8cb3d113b511e52b73abf6f1d5f7a6405841"
+          }
+        ],
+        "note": "原始记录 40 个分片，151 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      },
+      {
+        "n": 6,
+        "result": "unlabeled",
+        "duration_s": 41.2,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_215329",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts10-90s/trial_6.head.mp4",
+            "sha256": "27f23245ba1230e1f816ce5eddbf20b8b48ae70cafea9c5b00797bdb74581112"
+          }
+        ],
+        "note": "原始记录 27 个分片，103 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      }
+    ],
+    "min_trials_required": 3
+  },
+  "conclusion": "",
+  "tags": [
+    "train-time-rtc",
+    "63-realrobot"
+  ],
+  "source": {
+    "kind": "auto-import",
+    "path": "arx63_runs",
+    "imported_at": "2026-11-20T23:18:16+08:00",
+    "importer_version": "arx63-importer-0.1"
+  }
+}

@@ -67,7 +67,7 @@
       "task": "fold-blue-fabric",
       "action_mode": "relative",
       "differs": "运动前保留 0.3s、运动后保留 0.5s；臂相对 anchor、夹爪绝对；140 成功训练 + 7 成功 3 失败验证",
-      "recipe_id": null,
+      "recipe_id": "rc-tau0-foldblue-rel",
       "preparation_dir": "outputs/fold_blue_preparation"
     }
   ],
@@ -90,7 +90,7 @@
     {
       "what": "run_spec.json 里的 notes 与硬件描述可能写错（叠毛巾 RTC 的 notes 写 8×H100 但实际 4 卡）",
       "fix": "硬件以训练日志里的 world_size 为准",
-      "seen_in": "叠毛巾 τ₀ train-time RTC 训练（记录待登记）"
+      "seen_in": "tr-tau0-foldblue-rtc1116"
     }
   ],
   "docs": [

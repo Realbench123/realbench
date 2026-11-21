@@ -1,0 +1,90 @@
+{
+  "id": "ev-63-trainrtc-blend12-90s",
+  "type": "closed_loop",
+  "date": "2026-11-17",
+  "owner": "lerong",
+  "run_id": "tr-tau0-foldblue-rtc1116",
+  "checkpoint": {
+    "step": 10000,
+    "sha256": "f16895c6a824de64bfbc86da0957d46625ea9c53625e6619c443cba1b41b421f"
+  },
+  "task": "fold-blue-fabric",
+  "instruction": "Fold the blue fabric.",
+  "protocol": {
+    "name": "closed-loop-v0",
+    "version": "draft"
+  },
+  "deployment": {
+    "robot": "arx63",
+    "driver": "kd=5",
+    "server": {
+      "host": "127.0.0.1(经转发)",
+      "port": 10091,
+      "protocol": null,
+      "started": null,
+      "model_dir": null
+    },
+    "client": {
+      "name": "policy_client_cmd.py",
+      "git_hash": null,
+      "args": {
+        "seconds": 90.0,
+        "replan": 12,
+        "blend": 12,
+        "blend_shape": "linear",
+        "speed": 1.0,
+        "time_scale": 1.0,
+        "rtc_mode": "train",
+        "rtc_prefix": 0,
+        "rtc_weight": 10.0,
+        "rtc_margin": 1,
+        "gripper_vmax": 2.0,
+        "vmax": null
+      },
+      "loop_hz": 160.2
+    },
+    "extra": {
+      "loop_hz_per_trial": [
+        160.2
+      ]
+    }
+  },
+  "prediction": {
+    "text": "",
+    "falsified_if": null,
+    "written_at": null,
+    "after_the_fact": true
+  },
+  "closed_loop": {
+    "trials": [
+      {
+        "n": 1,
+        "result": "unlabeled",
+        "duration_s": 90.0,
+        "failure_mode": null,
+        "label_by": null,
+        "run_dir": "cmd_trainrtc_203610",
+        "videos": [
+          {
+            "camera": "head",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-blend12-90s/trial_1.head.mp4",
+            "sha256": "42ab1f8caea56d523f0b5c180fc7085d6642cef730b3bfb4b69877c5f97094c2"
+          }
+        ],
+        "note": "原始记录 51 个分片，224 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+      }
+    ],
+    "min_trials_required": 3
+  },
+  "conclusion": "",
+  "tags": [
+    "train-time-rtc",
+    "63-realrobot"
+  ],
+  "source": {
+    "kind": "auto-import",
+    "path": "arx63_runs",
+    "imported_at": "2026-11-20T23:18:16+08:00",
+    "importer_version": "arx63-importer-0.1"
+  }
+}

@@ -58,7 +58,7 @@
       "task": "fold-blue-fabric",
       "action_mode": "relative",
       "differs": "共用叠毛巾 τ₀ 的首尾 mask 与划分，独立重算统计",
-      "recipe_id": null,
+      "recipe_id": "rc-tau0-foldblue-rel",
       "preparation_dir": "outputs/pi05_fold_blue_relative_preparation"
     }
   ],
