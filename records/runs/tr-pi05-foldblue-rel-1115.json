@@ -1,0 +1,107 @@
+{
+  "id": "tr-pi05-foldblue-rel-1115",
+  "name": "π0.5 叠毛巾 相对表示（10000 步）",
+  "owner": "",
+  "family": "pi05",
+  "kind": "finetune",
+  "kind_note": "微调：从 pi05_base 起步全参数微调。类型由用户确认。",
+  "kind_suggested": "finetune",
+  "baseline_id": null,
+  "recipe_id": null,
+  "stack_id": "st-pi05-lerobot",
+  "base": {
+    "model_path": "pi05_base",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "arx_fold_blue（140 训练 / 10 验证）",
+        "episodes": 140,
+        "weight": null,
+        "kind": "success"
+      }
+    ],
+    "train_episodes": 140,
+    "val_episodes": 10,
+    "train_anchors": 107521,
+    "split_file": "arx_data_contract/split.json",
+    "split_sha256": "d191457b74a8f738aeb36674e2fa9fa7d9e169291fc1dddf097196c659448315",
+    "config_name": "arx_lift2s/fold_blue"
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": 16,
+    "grad_accum": 1,
+    "global_batch": 128,
+    "learning_rate": 2.5e-05,
+    "scheduler": "cosine_decay_with_warmup",
+    "warmup_steps": 100,
+    "weight_decay": 0.01,
+    "seed": 42,
+    "trainable": [],
+    "extra": {
+      "decay_steps": 10000,
+      "decay_lr": 2.5e-06,
+      "grad_clip_norm": 1.0,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "chunk_size": 30,
+      "n_action_steps": 12,
+      "dtype": "bfloat16",
+      "gradient_checkpointing": true,
+      "save_every": 2500,
+      "num_workers": 2,
+      "relative_actions": true,
+      "val_anchors": 10821
+    }
+  },
+  "hardware": {
+    "machine": "启智 H100",
+    "gpus": 8,
+    "gpu_type": "H100",
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "LeRobot（π0.5，PyTorch）",
+    "git_hash": null,
+    "dirty": null,
+    "command": null,
+    "config_yaml_sha256": "c9101f6ab29caa47de2287e1340aa4f55de10ca9b69857e2181238f56976c7ed"
+  },
+  "time": {
+    "start": null,
+    "end": null,
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.16493992507457733,
+    "final": 0.008129374566487968,
+    "final_window": 10,
+    "curve_file": "curves/tr-pi05-foldblue-rel-1115.json",
+    "summary_bad": false
+  },
+  "checkpoints": [
+    {
+      "step": 10000,
+      "path": "checkpoints/010000/pretrained_model",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    }
+  ],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "相对动作表示。与 τ₀ 叠毛巾共用同一划分文件（split sha256 d191457b…，和 rc-tau0-foldblue-rel 的一致）。 [导入器] 曲线来自 TensorBoard 事件文件的 train_rank0/loss（1001 个记录点，步 1–10000）；loss 末值取最后 10 个记录点的均值 0.0081，最后一个单点 0.0136。",
+  "source": {
+    "kind": "auto-import",
+    "path": "pi05-foldblue-rel（启智共享盘 outputs 下的训练目录）",
+    "imported_at": "2026-11-23T16:03:08+08:00",
+    "importer_version": "tb-importer-0.1"
+  }
+}

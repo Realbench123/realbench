@@ -213,12 +213,19 @@
           ]
         },
         "global_batch": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 1,
-          "description": "= per_device × grad_accum × world_size，从训练日志的 world_size 算"
+          "description": "= per_device × grad_accum × world_size，从训练日志的 world_size 算；读不到时 null"
         },
         "learning_rate": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "没读到就写 null，页面显示“未记录”，不要写 0"
         },
         "scheduler": {
           "type": "string"

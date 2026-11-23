@@ -1,0 +1,92 @@
+{
+  "id": "tr-tau0-cups-start03-1111",
+  "name": "τ₀ 叠杯子 start03 首部裁剪（10000 步）",
+  "owner": "",
+  "family": "tau0",
+  "baseline_id": "tr-tau0-cups-command-1110",
+  "recipe_id": null,
+  "kind": "finetune",
+  "kind_note": "微调：从 tau-0-vla-base 起步，运动前保留 0.3 秒；与 command 基线同划分、同超参。类型由用户确认。",
+  "kind_suggested": "finetune",
+  "base": {
+    "model_path": "tau-0-vla-base",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "arx_stackcups_start03_ft",
+        "episodes": 154,
+        "weight": null,
+        "kind": "success"
+      }
+    ],
+    "train_episodes": 154,
+    "val_episodes": 18,
+    "train_anchors": null,
+    "split_file": null,
+    "split_sha256": null,
+    "config_name": "arx_stackcups_start03_ft"
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": 16,
+    "grad_accum": 1,
+    "global_batch": 128,
+    "learning_rate": 2e-05,
+    "scheduler": "cosine",
+    "warmup_steps": 100,
+    "weight_decay": 0.01,
+    "seed": 42,
+    "trainable": [
+      "vision",
+      "mlp",
+      "llm",
+      "dit"
+    ],
+    "extra": {
+      "loss_type": "fm",
+      "num_steps": 10,
+      "training_time_rtc": false,
+      "rtc_max_delay": 0
+    }
+  },
+  "hardware": {
+    "machine": "启智 H100",
+    "gpus": 8,
+    "gpu_type": "H100",
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "tau0_vla",
+    "git_hash": "aef7631c27f2a1765cf5c9a2ec09036842afa5ba",
+    "dirty": true,
+    "command": "src/tau0_vla/trainer/train.py configs/arx_stackcups_start03/train_h100.yaml --per_device_train_batch_size 16 --gradient_accumulation_steps 1 --max_steps 10000 --run_name cups-start03-20261111-h100-b16",
+    "config_yaml_sha256": "df7a277056de9d32ac2fed1654a3bd4b00adcfd5d6dc242c920509751d1e71f7"
+  },
+  "time": {
+    "start": "2026-11-11T16:43:45+08:00",
+    "end": "2026-11-11T20:40:48+08:00",
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.159912109375,
+    "final": 0.005385866165161133,
+    "final_window": 10,
+    "curve_file": "curves/tr-tau0-cups-start03-1111.json",
+    "summary_bad": false
+  },
+  "checkpoints": [],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "[导入器] 起止时间来自 run_spec 或训练日志，原文无时区，按 UTC+0 解释。 [导入器核对] 全局 batch 128（16×1×8）；由训练器汇总反推为 128.0，一致。 数据来自 ds-cups-v1（原始 hdf5 172 集，154 训练 / 18 验证）。",
+  "source": {
+    "kind": "auto-import",
+    "path": "cups-start03-20261111-h100-b16",
+    "imported_at": "2026-11-23T16:01:21+08:00",
+    "importer_version": "tau0-importer-0.1"
+  },
+  "stack_id": "st-tau0-h100"
+}

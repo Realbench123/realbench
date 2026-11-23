@@ -1,0 +1,107 @@
+{
+  "id": "tr-pi05-cups-abs-1112",
+  "name": "π0.5 叠杯子 绝对表示（10000 步）",
+  "owner": "",
+  "family": "pi05",
+  "kind": "finetune",
+  "kind_note": "微调：从 pi05_base 起步全参数微调。类型由用户确认。",
+  "kind_suggested": "finetune",
+  "baseline_id": null,
+  "recipe_id": null,
+  "stack_id": "st-pi05-lerobot",
+  "base": {
+    "model_path": "pi05_base",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "arx_stackcups（154 训练 / 18 验证）",
+        "episodes": 154,
+        "weight": null,
+        "kind": "success"
+      }
+    ],
+    "train_episodes": 154,
+    "val_episodes": 18,
+    "train_anchors": 122738,
+    "split_file": "arx_data_contract/split.json",
+    "split_sha256": "7dc29a75ac16ed3480635984cf572681b5c6e245cbc86cfd067e1271f1065cbe",
+    "config_name": "arx_lift2s/stackcups"
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": 16,
+    "grad_accum": 1,
+    "global_batch": 128,
+    "learning_rate": 2.5e-05,
+    "scheduler": "cosine_decay_with_warmup",
+    "warmup_steps": 100,
+    "weight_decay": 0.01,
+    "seed": 42,
+    "trainable": [],
+    "extra": {
+      "decay_steps": 10000,
+      "decay_lr": 2.5e-06,
+      "grad_clip_norm": 1.0,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "chunk_size": 30,
+      "n_action_steps": 12,
+      "dtype": "bfloat16",
+      "gradient_checkpointing": true,
+      "save_every": 2500,
+      "num_workers": 2,
+      "relative_actions": false,
+      "val_anchors": 16180
+    }
+  },
+  "hardware": {
+    "machine": "启智 H100",
+    "gpus": 8,
+    "gpu_type": "H100",
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "LeRobot（π0.5，PyTorch）",
+    "git_hash": null,
+    "dirty": null,
+    "command": null,
+    "config_yaml_sha256": "b6fcfb5c0157a708f8e9ec667bc932f61479a33fe6e20b8618f9727b4222042e"
+  },
+  "time": {
+    "start": null,
+    "end": null,
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.18549567461013794,
+    "final": 0.003905932721681893,
+    "final_window": 10,
+    "curve_file": "curves/tr-pi05-cups-abs-1112.json",
+    "summary_bad": false
+  },
+  "checkpoints": [
+    {
+      "step": 10000,
+      "path": "checkpoints/010000/pretrained_model",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    }
+  ],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "绝对关节指令表示（relative_actions=False）。目录名里带 r2，同目录下还有 r1 的 smoke，只导入 r2 正式训练。 [导入器] 曲线来自 TensorBoard 事件文件的 train_rank0/loss（1001 个记录点，步 1–10000）；loss 末值取最后 10 个记录点的均值 0.0039，最后一个单点 0.0047。 数据来自 ds-cups-v1（原始 hdf5 172 集，154 训练 / 18 验证）。",
+  "source": {
+    "kind": "auto-import",
+    "path": "pi05-cups-r2（启智共享盘 outputs 下的训练目录）",
+    "imported_at": "2026-11-23T16:03:08+08:00",
+    "importer_version": "tb-importer-0.1"
+  }
+}

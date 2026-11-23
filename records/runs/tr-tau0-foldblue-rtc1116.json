@@ -3,7 +3,7 @@
   "name": "τ₀ 叠毛巾 train-time RTC（10000 步）",
   "owner": "lerong",
   "family": "tau0",
-  "baseline_id": null,
+  "baseline_id": "tr-tau0-foldblue-rel-1115",
   "recipe_id": "rc-tau0-foldblue-rel",
   "kind": "finetune",
   "kind_note": "微调：从 tau-0-vla-base 起步，附加 train-time RTC 目标。",

@@ -13,7 +13,7 @@ const KIND={scratch:'从头训',pretrain:'预训练',finetune:'微调',posttrain
 const STATUS={finished:'已完成',running:'进行中',failed:'失败',stopped:'已停止',superseded:'已被取代'};
 const RESULT={success:'成功',fail:'失败',partial:'部分',invalid:'无效',unlabeled:'未标注'};
 
-function fmtLr(x){return x==null?'':x.toExponential(0).replace('e-0','e-').replace('e+0','e')}
+function fmtLr(x){return x==null?'未记录':x.toExponential(0).replace('e-0','e-').replace('e+0','e')}
 function fmtNum(x,d){return x==null?'—':Number(x).toLocaleString('en-US',{maximumFractionDigits:d==null?0:d})}
 function fmtLoss(x){return x==null?'—':x.toFixed(x<0.1?4:3)}
 function dateOf(iso){return iso?iso.slice(0,10):'—'}
@@ -361,7 +361,7 @@ function viewRun(id){
   v.appendChild(h('section',{id:'sec-train',class:'sec'},[h('h2',{text:'训练'}),h('div',{class:'two'},[
     h('div',{class:'panel'},[kvTable([['基座',h('span',{class:'hash',text:r.base.model_path})],['步数',fmtNum(p.max_steps)],
       ['全局 batch',fmtNum(p.global_batch)+(p.per_device_batch?'（每卡 '+p.per_device_batch+' × 累积 '+(p.grad_accum||1)+' × '+r.hardware.gpus+' 卡）':'')],
-      ['学习率',p.learning_rate+' · '+p.scheduler+' · 预热 '+p.warmup_steps],['权重衰减',p.weight_decay==null?'—':p.weight_decay],['种子',p.seed==null?'—':p.seed],
+      ['学习率',(p.learning_rate==null?'未记录':p.learning_rate)+' · '+p.scheduler+' · 预热 '+p.warmup_steps],['权重衰减',p.weight_decay==null?'—':p.weight_decay],['种子',p.seed==null?'—':p.seed],
       ['可训练部分',(p.trainable||[]).join('、')||'—'],...Object.entries(p.extra||{}).map(([k,x])=>[k,String(x)])])]),
     h('div',{class:'panel'},[kvTable([['机器',r.hardware.machine],['卡数',r.hardware.gpus+(r.hardware.gpu_type?' × '+r.hardware.gpu_type:'')],
       ['GPU 序号',(r.hardware.gpu_indices||[]).length?r.hardware.gpu_indices.join(', '):'未记录'],

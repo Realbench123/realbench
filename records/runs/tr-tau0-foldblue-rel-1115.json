@@ -1,0 +1,92 @@
+{
+  "id": "tr-tau0-foldblue-rel-1115",
+  "name": "τ₀ 叠毛巾 相对表示（10000 步）",
+  "owner": "",
+  "family": "tau0",
+  "baseline_id": null,
+  "recipe_id": "rc-tau0-foldblue-rel",
+  "kind": "finetune",
+  "kind_note": "微调：从 tau-0-vla-base 起步，相对动作表示，不带 RTC。类型由用户确认。",
+  "kind_suggested": "finetune",
+  "base": {
+    "model_path": "tau-0-vla-base",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "arx_fold_blue_relative_ft",
+        "episodes": 140,
+        "weight": null,
+        "kind": "success"
+      }
+    ],
+    "train_episodes": 140,
+    "val_episodes": 10,
+    "train_anchors": null,
+    "split_file": "configs/arx_fold_blue_relative/split.json",
+    "split_sha256": "d191457b74a8f738aeb36674e2fa9fa7d9e169291fc1dddf097196c659448315",
+    "config_name": "arx_fold_blue_relative_ft"
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": 16,
+    "grad_accum": 1,
+    "global_batch": 128,
+    "learning_rate": 2e-05,
+    "scheduler": "cosine",
+    "warmup_steps": 100,
+    "weight_decay": 0.01,
+    "seed": 42,
+    "trainable": [
+      "vision",
+      "mlp",
+      "llm",
+      "dit"
+    ],
+    "extra": {
+      "loss_type": "fm",
+      "num_steps": 10,
+      "training_time_rtc": false,
+      "rtc_max_delay": 0
+    }
+  },
+  "hardware": {
+    "machine": "启智 H100",
+    "gpus": 8,
+    "gpu_type": "H100",
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "tau0_vla",
+    "git_hash": "aef7631c27f2a1765cf5c9a2ec09036842afa5ba",
+    "dirty": true,
+    "command": "src/tau0_vla/trainer/train.py configs/arx_fold_blue_relative/train_h100.yaml --per_device_train_batch_size 16 --gradient_accumulation_steps 1 --max_steps 10000 --run_name tau0-foldblue-rel-20261115-032736-b16",
+    "config_yaml_sha256": "b3828b8b48c260ff23eadf11a898b082c266310a938641ea77ed8ed0903ca6a4"
+  },
+  "time": {
+    "start": "2026-11-15T12:01:28+08:00",
+    "end": "2026-11-15T16:13:34+08:00",
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.16143798828125,
+    "final": 0.0074457740783691415,
+    "final_window": 10,
+    "curve_file": "curves/tr-tau0-foldblue-rel-1115.json",
+    "summary_bad": false
+  },
+  "checkpoints": [],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "[导入器] 起止时间来自 run_spec 或训练日志，原文无时区，按 UTC+0 解释。 [导入器核对] 全局 batch 128（16×1×8）；由训练器汇总反推为 128.0，一致。 叠毛巾 τ₀ 相对表示，不带 RTC，与 tr-tau0-foldblue-rtc1116 的区别在 RTC 目标。",
+  "source": {
+    "kind": "auto-import",
+    "path": "tau0-foldblue-rel-20261115-032736-b16",
+    "imported_at": "2026-11-23T16:04:40+08:00",
+    "importer_version": "tau0-importer-0.1"
+  },
+  "stack_id": "st-tau0-h100"
+}

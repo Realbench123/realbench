@@ -1,0 +1,82 @@
+{
+  "id": "st-lingbot-vla2",
+  "name": "LingBot VLA v2（MoE）· 启智 8 卡",
+  "family": "lingbot",
+  "framework": "LingBotBaseline（lingbot_fast_training_native，FSDP2）",
+  "base_models": [
+    {
+      "name": "lingbot-vla-v2-6b",
+      "format": "LingBot VLA v2 权重，附 Qwen3-VL-4B tokenizer",
+      "location_label": "启智共享盘（同学的 LingBotBaseline 项目目录）",
+      "sha256": null,
+      "license": null,
+      "url": null
+    }
+  ],
+  "runtime": {
+    "image": null,
+    "interpreter": "conda 环境 envs/lingbot（Python 3.12）",
+    "source_snapshot": "归档的 source/ 目录（脚本、补丁、文档）与 inference/vendor（推理所需源码）",
+    "snapshot_checksums": true,
+    "python": "3.12",
+    "note": "归档不含环境和基座权重；依赖版本记录在 source/configs/training-installed.freeze.txt 与 conda-runtime-explicit.txt。推理启动脚本引用上层 envs/inference 环境，复制归档目录不会安装它。"
+  },
+  "compute": {
+    "platform": "启智",
+    "group": null,
+    "gpu_type": null,
+    "typical": "8 卡，每卡 micro batch 64，累积 1，全局 512，FSDP2 分片 8，每卡 4 个加载进程，10000 步，lr 2e-5 余弦、第 100 步到峰值，adamw，save 每 2000 步，fp32 训练 / bf16 导出"
+  },
+  "entrypoints": {
+    "submit": null,
+    "node": null,
+    "cli": "lingbotvla_cli.yaml（原始解析后的命令行配置，归档在 training/）",
+    "smoke": null
+  },
+  "config_variants": [
+    {
+      "name": "ARX 0909 七任务联合",
+      "task": "七任务混合（L、T、Red、Blue、CircleUp、Down、Banana）",
+      "action_mode": "下一帧关节反馈（不再额外移位）",
+      "differs": "相对同学之前的 10k 方案，只改批量布局和加载器：micro batch 4→64、累积 16→1、num_workers 0→4",
+      "recipe_id": null,
+      "preparation_dir": null
+    }
+  ],
+  "monitoring": {
+    "tensorboard": "标量写入事件文件，训练目录 training/runs；曲线图 training/curves",
+    "wandb": "未使用（use_wandb: false）",
+    "status_file": null
+  },
+  "known_issues": [
+    {
+      "what": "整套归档没有留出验证集，评测产物只是训练数据上的开环诊断",
+      "fix": "需要另外切验证集，或直接上真机评测",
+      "seen_in": "tr-lingbot-arx0909-s10000"
+    },
+    {
+      "what": "归档里不含中间 DCP 检查点和优化器状态，不能续训",
+      "fix": "续训要用原始完整检查点",
+      "seen_in": "tr-lingbot-arx0909-s10000"
+    },
+    {
+      "what": "夹爪在真机上需要按会话做校准和逆拟合",
+      "fix": "归档 README 里有说明；硬件客户端和校准代码没有随归档提供",
+      "seen_in": "tr-lingbot-arx0909-s10000"
+    }
+  ],
+  "docs": [
+    {
+      "title": "归档 README（训练配置、数据来源、完整性校验）",
+      "path": "README.md"
+    }
+  ],
+  "used_by_runs": [],
+  "notes": "来自同学整理的归档目录。归档自带 SHA256SUMS 覆盖 1354 个文件，复制时逐个核对过哈希。",
+  "source": {
+    "kind": "manual",
+    "path": "lingbot-arx-0909-step10000/README.md 与 training/configs/train.yaml、plan.json",
+    "imported_at": "2026-11-23T16:07:23+08:00",
+    "importer_version": "manual"
+  }
+}

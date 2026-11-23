@@ -1,0 +1,84 @@
+{
+  "id": "tr-pi05-relative-h50-mem-10000",
+  "name": "π0.5 relative_h50_mem（10000 步，来源待确认）",
+  "owner": "",
+  "family": "pi05",
+  "kind": "finetune",
+  "kind_note": "微调：由用户确认。目录名只有 relative_h50_mem_10000，来源待确认。",
+  "kind_suggested": "finetune",
+  "baseline_id": null,
+  "recipe_id": null,
+  "stack_id": "st-pi05-lerobot",
+  "base": {
+    "model_path": "",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "未记录",
+        "episodes": 0,
+        "weight": null,
+        "kind": "other"
+      }
+    ],
+    "train_episodes": 0,
+    "val_episodes": 0,
+    "train_anchors": null,
+    "split_file": null,
+    "split_sha256": null,
+    "config_name": ""
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": null,
+    "grad_accum": null,
+    "global_batch": null,
+    "learning_rate": null,
+    "scheduler": "未记录",
+    "warmup_steps": 0,
+    "weight_decay": null,
+    "seed": null,
+    "trainable": [],
+    "extra": {
+      "action_horizon": 50
+    }
+  },
+  "hardware": {
+    "machine": "启智",
+    "gpus": 1,
+    "gpu_type": null,
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "LeRobot（π0.5，PyTorch）",
+    "git_hash": null,
+    "dirty": null,
+    "command": null,
+    "config_yaml_sha256": null
+  },
+  "time": {
+    "start": null,
+    "end": null,
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.1842770129442215,
+    "final": 0.01731484392657876,
+    "final_window": 10,
+    "curve_file": "curves/tr-pi05-relative-h50-mem-10000.json",
+    "summary_bad": false
+  },
+  "checkpoints": [],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "来源未确认：只有 TensorBoard 目录 relative_h50_mem_10000（两个事件文件，一个空）和 preparation 目录里的 health 文件。health 文件写 world_size=1（其它 π0.5 训练是 8 卡），preparation 里动作窗口 horizon=50、相对动作表示、训练锚点 112506、验证锚点 14917，数据根目录为叠杯子的 cups_command_v3。训练配置（lr、batch、基座权重）没有找到，页面上这些字段都是空的，不是 0。同一个 TensorBoard 目录里还有一个空事件文件，没有使用。 [导入器] 曲线来自 TensorBoard 事件文件的 train_rank0/loss（1001 个记录点，步 1–10000）；loss 末值取最后 10 个记录点的均值 0.0173，最后一个单点 0.0188。",
+  "source": {
+    "kind": "auto-import",
+    "path": "relative_h50_mem_10000（启智共享盘 TensorBoard 目录）",
+    "imported_at": "2026-11-23T16:04:56+08:00",
+    "importer_version": "tb-importer-0.1"
+  }
+}

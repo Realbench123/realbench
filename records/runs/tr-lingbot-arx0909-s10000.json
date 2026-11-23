@@ -1,0 +1,102 @@
+{
+  "id": "tr-lingbot-arx0909-s10000",
+  "name": "LingBot ARX 0909 七任务联合后训练（10000 步）",
+  "owner": "",
+  "family": "lingbot",
+  "kind": "finetune",
+  "kind_note": "微调：从 lingbot-vla-v2-6b 基座起步（归档 README 称 Fresh foundation initialization，配置 post_training: true）。类型由用户确认。",
+  "kind_suggested": "finetune",
+  "baseline_id": null,
+  "recipe_id": null,
+  "stack_id": "st-lingbot-vla2",
+  "base": {
+    "model_path": "lingbot-vla-v2-6b",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "0909_mixed_v1/All（七任务混合）",
+        "episodes": 2846,
+        "weight": null,
+        "kind": "mixed"
+      }
+    ],
+    "train_episodes": 2846,
+    "val_episodes": 0,
+    "train_anchors": null,
+    "split_file": null,
+    "split_sha256": null,
+    "config_name": "arx_joint_0909"
+  },
+  "hparams": {
+    "max_steps": 10000,
+    "per_device_batch": 64,
+    "grad_accum": 1,
+    "global_batch": 512,
+    "learning_rate": 2e-05,
+    "scheduler": "cosine",
+    "warmup_steps": 100,
+    "weight_decay": null,
+    "seed": null,
+    "trainable": [],
+    "extra": {
+      "optimizer": "adamw",
+      "lr_min": 0.0,
+      "lr_warmup_to_peak_step": 100,
+      "save_steps": 2000,
+      "precision": "fp32 训练，bf16 导出",
+      "moe": "32 专家 top-4，36 层",
+      "parallel": "FSDP2，shard 8",
+      "loader_workers_per_rank": 4,
+      "loss_type": "L1_fm",
+      "action_dim": 55
+    }
+  },
+  "hardware": {
+    "machine": "启智 GPU",
+    "gpus": 8,
+    "gpu_type": null,
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "LingBotBaseline",
+    "git_hash": null,
+    "dirty": null,
+    "command": null,
+    "config_yaml_sha256": "ebe5a48867b863de68858ab7aa053c42eebbcd4089f94c06e256a06bc45edf0c"
+  },
+  "time": {
+    "start": "2026-11-17T23:33:23",
+    "end": "2026-11-18T13:05:24",
+    "status_reason": "console.log 首尾时间戳，原文无时区"
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.519287109375,
+    "final": 0.0737457275390625,
+    "final_window": 10,
+    "curve_file": "curves/tr-lingbot-arx0909-s10000.json",
+    "summary_bad": false
+  },
+  "checkpoints": [
+    {
+      "step": 10000,
+      "path": "model.safetensors.index.json（bf16 导出，25 个分片）",
+      "sha256": "53c08397e0b3ed35422f3c65ded3091e3f34ffab76294766655c4646aa486c34",
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    }
+  ],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "数据没有留出验证集；同学的归档 README 写明评测产物是训练数据上的诊断，不是验证成功率，也不代表真机成功。权重导出为 bf16（FP32 路由缓冲保留），gpu_bf16_forward 在导出报告里是 pending，robot_execution 是 not performed。checkpoint 的 sha256 是分片清单 model.safetensors.index.json 的哈希，25 个分片各自的哈希在归档的 SHA256SUMS 里。训练栈是 LingBot VLA v2（MoE）。 [导入器] 曲线来自 TensorBoard 事件文件的 training/loss（10000 个记录点，步 1–10000）；loss 末值取最后 10 个记录点的均值 0.0737，最后一个单点 0.0735。 warmup_steps=100 由学习率曲线读出（第 1 步 2e-7，第 100 步达到峰值 2e-5），配置文件里没有直接写这个字段。 数据来自 ds-0909-mixed-v1。",
+  "source": {
+    "kind": "auto-import",
+    "path": "lingbot-arx-0909-step10000（启智共享盘归档）",
+    "imported_at": "2026-11-23T15:57:25+08:00",
+    "importer_version": "tb-importer-0.1"
+  }
+}
