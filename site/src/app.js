@@ -116,6 +116,10 @@ async function showTrash(){
 
 /* ---------- 路由 ---------- */
 function route(){const x=location.hash.slice(1);
+  if(x===''||x==='home')return {v:'intro'};
+  if(x==='all')return {v:'home'};
+  if(x==='vendor')return {v:'vendor'};
+  if(x.startsWith('v-'))return {v:'vtest',id:'vt-'+x.slice(2)};
   if(x==='recipes')return {v:'recipes'};
   if(x==='real')return {v:'real'};
   if(x==='datasets')return {v:'datasets'};
@@ -132,12 +136,16 @@ function route(){const x=location.hash.slice(1);
   if(x.startsWith('r-'))return {v:'run',id:'tr-'+x.slice(2)};
   if(x.startsWith('e-'))return {v:'eval',id:'ev-'+x.slice(2)};
   if(x==='compare')return {v:'compare'};
-  return {v:'home'}}
-function hashFor(id){return id.startsWith('tr-')?'#r-'+id.slice(3):id.startsWith('rc-')?'#c-'+id.slice(3):'#e-'+id.slice(3)}
+  return {v:'intro'}}
+function hashFor(id){return id.startsWith('vt-')?'#v-'+id.slice(3):id.startsWith('tr-')?'#r-'+id.slice(3):id.startsWith('rc-')?'#c-'+id.slice(3):'#e-'+id.slice(3)}
 function renderTabs(cur){const t=$('#tabs');t.textContent='';
   const n=g=>DATA.runs.filter(r=>inGroup(r,g)).length;
-  const L=[['home','总览（'+n('')+'）','#'],['ft','微调 / 后训练（'+n('ft')+'）','#train'],['pre','预训练 / 从头训（'+n('pre')+'）','#pretrain'],['real','真机测试（'+realEvals().length+'）','#real'],['groups','实验组（'+(DATA.groups||[]).length+'）','#groups'],
-    ['datasets','数据集（'+(DATA.datasets||[]).length+'）','#datasets'],['recipes','数据配方（'+(DATA.recipes||[]).length+'）','#recipes'],['plans','采集方案（'+(DATA.plans||[]).length+'）','#plans'],['stacks','训练栈（'+(DATA.stacks||[]).length+'）','#stacks'],['compare','对比','#compare']];
+  const c=a=>(a||[]).length;
+  const L=[['intro','总览','#'],
+    ['plans','① 采集方案（'+c(DATA.plans)+'）','#plans'],['datasets','② 数据集（'+c(DATA.datasets)+'）','#datasets'],['recipes','③ 数据配方（'+c(DATA.recipes)+'）','#recipes'],
+    ['pre','④ 预训练（'+n('pre')+'）','#pretrain'],['ft','⑤ 微调 / 后训练（'+n('ft')+'）','#train'],
+    ['real','⑥ 真机测试（'+realEvals().length+'）','#real'],['vendor','⑦ 厂商 API 测试（'+c(DATA.vendor_tests)+'）','#vendor'],
+    ['stacks','训练栈（'+c(DATA.stacks)+'）','#stacks'],['groups','实验组（'+c(DATA.groups)+'）','#groups'],['all','全部训练','#all'],['compare','对比','#compare']];
   L.forEach(([k,l,hr])=>t.appendChild(h('a',{href:hr,text:l,'aria-current':cur===k?'page':null})))}
 
 /* ================= 总览：一行一次训练 ================= */
@@ -205,7 +213,7 @@ function viewHome(group){
   if(pend)v.appendChild(h('div',{class:'banner',text:'有 '+pend+' 条记录还没正式登记（在本机 .local/ 里，标「待登记」或「样本」）。确认后移进 records/，才会出现在公开页面。'}));
   const pool=DATA.runs.filter(r=>inGroup(r,group));
   const real=pool.filter(r=>closedEvalsOf(r).length).length;
-  const T={'':['训练总览','微调、后训练、预训练都在这一张表里。'],ft:['微调 / 后训练','从预训练基座出发，在目标任务数据上训练；后训练指微调之后再加额外目标（RTC、RL、偏好等）。'],pre:['预训练 / 从头训','大规模混合数据上的预训练，以及随机初始化的从头训练。类型靠人工确认，导入器只给建议。']}[group];
+  const T={'':['全部训练','微调、后训练、预训练都在这一张表里。'],ft:['微调 / 后训练','从预训练基座出发，在目标任务数据上训练；后训练指微调之后再加额外目标（RTC、RL、偏好等）。'],pre:['预训练 / 从头训','大规模混合数据上的预训练，以及随机初始化的从头训练。类型靠人工确认，导入器只给建议。']}[group];
   v.appendChild(h('div',null,[h('h2',{text:T[0]}),h('p',{class:'sub'},[T[1]+' 一行一次训练，点训练名进入详情，点曲线可以放大。共 '+pool.length+' 次训练，其中 '+real+' 次有真机评测。',h('a',{href:'#real',text:' 看全部真机测试 →'})])]));
   const kinds=[...new Set(pool.map(r=>r.kind))],fams=[...new Set(pool.map(r=>r.family).filter(Boolean))],tasks=[...new Set(pool.flatMap(tasksOf))];
   const sel=(label,key,opts,map)=>{const s=h('select',{id:'f-'+key,onchange:e=>{flt[key]=e.target.value;renderTable()}},[h('option',{value:'',text:'全部'}),...opts.map(o=>h('option',{value:o,text:map?map(o):o}))]);s.value=flt[key];return h('label',{for:'f-'+key},[label,s])};
@@ -329,7 +337,7 @@ function jump(id){const e=document.getElementById(id);if(e)e.scrollIntoView({beh
 function viewRun(id){
   const r=RUNS[id];if(!r)return viewMissing('找不到训练 '+id);
   const v=h('div',{style:'display:flex;flex-direction:column;gap:16px'});
-  v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#',text:'← 全部训练'})]));
+  v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#all',text:'← 全部训练'})]));
   v.appendChild(h('div',null,[h('h2',{text:r.name,style:'font-size:20px'}),
     h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[
       h('span',{class:'pill k-'+r.kind,text:KIND[r.kind]}),h('span',{class:'pill s-'+r.status,text:STATUS[r.status]}),
@@ -417,7 +425,7 @@ function viewReal(){
   const v=h('div',{style:'display:flex;flex-direction:column;gap:14px'});
   const all=realEvals();
   const tot=all.reduce((a,e)=>{const s=trialStats(e);a.n+=s.n;a.lab+=s.labeled;a.vid+=s.videos;a.unl+=s.unlabeled;return a},{n:0,lab:0,vid:0,unl:0});
-  v.appendChild(h('div',null,[h('h2',{text:'真机测试'}),h('p',{class:'sub',text:'每一行是一次真机评测（一个 checkpoint、一个任务、一套部署配置下的若干次试验）。成功率只统计已有人标注成败的试验，未标注的单独列出，不算失败也不算成功。共 '+all.length+' 次评测，'+tot.n+' 次试验，其中 '+tot.lab+' 次已标注，'+tot.vid+' 段视频。'})]));
+  v.appendChild(h('div',null,[h('h2',{text:'真机测试'}),h('p',{class:'sub',text:'我们自己训练的模型在真机上的评测：一行是一次评测（一个 checkpoint、一个任务、一套部署配置下的若干次试验），每次试验附头部、左腕、右腕三路视频。成功率只统计已有人标注成败的试验，未标注的单独列出，不算失败也不算成功。厂商模型的 API 测试在“厂商 API 测试”页。共 '+all.length+' 次评测，'+tot.n+' 次试验，其中 '+tot.lab+' 次已标注，'+tot.vid+' 段视频。'})]));
   if(tot.unl)v.appendChild(h('div',{class:'banner',text:'有 '+tot.unl+' 次试验还没人看视频标注成败。导入器只会给“未标注”，成败要人来判。'}));
   if(!all.length){
     v.appendChild(h('div',{class:'panel'},[h('h3',{text:'还没有真机评测记录'}),
@@ -429,7 +437,7 @@ function viewReal(){
   const sel=(label,key,opts)=>{const s=h('select',{onchange:e=>{f[key]=e.target.value;renderRealTable()}},[h('option',{value:'',text:'全部'}),...opts.map(o=>h('option',{value:o,text:o}))]);s.value=f[key];return h('label',null,[label,s])};
   v.appendChild(h('div',{class:'filters'},[h('label',null,['搜索',h('input',{type:'search',value:f.q,placeholder:'任务、训练名、检查点',oninput:e=>{f.q=e.target.value;renderRealTable()}})]),sel('任务','task',tasks),sel('机器人','robot',robots)]));
   v.appendChild(h('div',{id:'real-tbl',class:'scroll'}));
-  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'最近的视频'}),h('div',{id:'real-vids',class:'videos'})]));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'最近的试验视频（头部 / 左腕 / 右腕）'}),h('div',{id:'real-vids',style:'display:flex;flex-direction:column;gap:12px'})]));
   v.appendChild(unassignedBox());
   setTimeout(renderRealTable,0);
   return v}
@@ -462,11 +470,11 @@ function renderRealTable(){
         h('td',null,[h('a',{href:hashFor(e.id),text:'详情'})])])})));
     t.appendChild(tb)}
   const vids=document.getElementById('real-vids');if(!vids)return;vids.textContent='';
-  const tiles=[];
-  rows.forEach(e=>((e.closed_loop&&e.closed_loop.trials)||[]).forEach(tr=>(tr.videos||[]).forEach(x=>{if(tiles.length<12)tiles.push(videoTile(tr,x,e))})));
-  if(tiles.length)tiles.forEach(x=>vids.appendChild(x));else vids.appendChild(h('div',{class:'empty',text:'还没有真机视频。'}))}
+  const cards=[];
+  rows.forEach(e=>((e.closed_loop&&e.closed_loop.trials)||[]).forEach(tr=>{if((tr.videos||[]).length&&cards.length<6)cards.push(trialCard(tr,e.task))}));
+  if(cards.length)cards.forEach(x=>vids.appendChild(x));else vids.appendChild(h('div',{class:'empty',text:'还没有真机视频。'}))}
 
-function viewMissing(t){return h('div',null,[h('div',{class:'crumb'},[h('a',{href:'#',text:'← 全部训练'})]),h('div',{class:'empty',text:t})])}
+function viewMissing(t){return h('div',null,[h('div',{class:'crumb'},[h('a',{href:'#all',text:'← 全部训练'})]),h('div',{class:'empty',text:t})])}
 
 /* ================= 评测详情 ================= */
 function videoTile(t,v,ev){
@@ -484,7 +492,7 @@ function viewEval(id){
   const e=EVALS[id];if(!e)return viewMissing('找不到评测 '+id);
   const run=RUNS[e.run_id];
   const v=h('div',{style:'display:flex;flex-direction:column;gap:16px'});
-  v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#',text:'← 全部训练'}),run?h('span',null,[' / ',h('a',{href:hashFor(run.id),text:run.name})]):null]));
+  v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#all',text:'← 全部训练'}),run?h('span',null,[' / ',h('a',{href:hashFor(run.id),text:run.name})]):null]));
   v.appendChild(h('div',null,[h('h2',{text:e.task+' · '+(e.type==='closed_loop'?'真机评测':'开环评测'),style:'font-size:20px'}),
     h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[tagOf(e)?h('span',{class:'pill tag-sample',text:tagOf(e)}):null,
       h('span',{class:'sub num',text:e.id+' · '+e.date+' · checkpoint '+fmtNum(e.checkpoint.step)+' · 协议 '+e.protocol.name+' '+e.protocol.version}),delBtn(e.id,'删除这条评测')])]));
@@ -506,8 +514,7 @@ function viewEval(id){
       h('thead',null,[h('tr',null,['#','结果','时长(s)','失败方式','标注人','运行目录','备注'].map(x=>h('th',{text:x})))]),
       h('tbody',null,e.closed_loop.trials.map(t=>h('tr',null,[h('td',{class:'n',text:t.n}),h('td',null,[h('span',{class:t.result==='success'?'ok':t.result==='unlabeled'?'warn':'',text:RESULT[t.result]})]),
         h('td',{class:'n',text:t.duration_s==null?'—':t.duration_s}),h('td',{text:t.failure_mode||''}),h('td',{text:t.label_by||''}),h('td',{class:'hash',text:t.run_dir||''}),h('td',{text:t.note||''})])))])])]));
-    const tiles=[];e.closed_loop.trials.forEach(t=>{if((t.videos||[]).length)t.videos.forEach(x=>tiles.push(videoTile(t,x,e)));else tiles.push(videoTile(t,null,e))});
-    v.appendChild(h('section',{class:'sec'},[h('h2',{text:'视频'}),h('div',{class:'videos'},tiles)]));
+    v.appendChild(h('section',{class:'sec'},[h('h2',{text:'视频（头部 / 左腕 / 右腕）'}),h('p',{class:'sub',text:'每次试验三路相机并排。缺哪一路就标缺哪一路。'}),h('div',{style:'display:flex;flex-direction:column;gap:12px'},e.closed_loop.trials.map(t=>trialCard(t,e.task)))]));
   }else{
     const m=(e.open_loop&&e.open_loop.metrics)||{};
     v.appendChild(h('section',{class:'sec'},[h('h2',{text:'开环指标'}),h('div',{class:'panel'},[Object.keys(m).length?kvTable(Object.entries(m).map(([k,x])=>[k,Number(x).toFixed(5)])):h('p',{class:'sub',text:'没有指标'}),
@@ -546,9 +553,9 @@ function renderCmp(){
 /* ================= 启动 ================= */
 function render(){
   const r=route(),main=$('#main');main.textContent='';
-  renderTabs(r.v==='compare'?'compare':r.v==='real'?'real':(r.v==='datasets'||r.v==='dataset')?'datasets':(r.v==='plans'||r.v==='plan')?'plans':(r.v==='stacks'||r.v==='stack')?'stacks':(r.v==='groups'||r.v==='group')?'groups':(r.v==='recipes'||r.v==='recipe')?'recipes':(r.v==='run'&&RUNS[r.id])?(GROUP.pre.includes(RUNS[r.id].kind)?'pre':'ft'):(r.v==='home'&&r.group)?r.group:'home');
+  renderTabs(r.v==='intro'?'intro':(r.v==='vendor'||r.v==='vtest')?'vendor':r.v==='compare'?'compare':r.v==='real'?'real':(r.v==='datasets'||r.v==='dataset')?'datasets':(r.v==='plans'||r.v==='plan')?'plans':(r.v==='stacks'||r.v==='stack')?'stacks':(r.v==='groups'||r.v==='group')?'groups':(r.v==='recipes'||r.v==='recipe')?'recipes':(r.v==='run'&&RUNS[r.id])?(GROUP.pre.includes(RUNS[r.id].kind)?'pre':'ft'):(r.v==='home'&&r.group)?r.group:(r.v==='home'?'all':'intro'));
   let view;
-  if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else if(r.v==='recipes')view=viewRecipes();else if(r.v==='real')view=viewReal();else if(r.v==='datasets')view=viewDatasets();else if(r.v==='dataset')view=viewDataset(r.id);else if(r.v==='plans')view=viewPlans();else if(r.v==='plan')view=viewPlan(r.id);else if(r.v==='stacks')view=viewStacks();else if(r.v==='stack')view=viewStack(r.id);else if(r.v==='groups')view=viewGroups();else if(r.v==='group')view=viewGroup(r.id);else if(r.v==='recipe')view=viewRecipe(r.id);else view=viewHome(r.group||'');
+  if(r.v==='intro')view=viewIntro();else if(r.v==='vendor')view=viewVendor();else if(r.v==='vtest')view=viewVtest(r.id);else if(r.v==='run')view=viewRun(r.id);else if(r.v==='eval')view=viewEval(r.id);else if(r.v==='compare')view=viewCompare();else if(r.v==='recipes')view=viewRecipes();else if(r.v==='real')view=viewReal();else if(r.v==='datasets')view=viewDatasets();else if(r.v==='dataset')view=viewDataset(r.id);else if(r.v==='plans')view=viewPlans();else if(r.v==='plan')view=viewPlan(r.id);else if(r.v==='stacks')view=viewStacks();else if(r.v==='stack')view=viewStack(r.id);else if(r.v==='groups')view=viewGroups();else if(r.v==='group')view=viewGroup(r.id);else if(r.v==='recipe')view=viewRecipe(r.id);else view=viewHome(r.group||'');
   main.appendChild(adminBar());
   main.appendChild(view);
   if(r.v==='home')renderTable();if(r.v==='compare')renderCmp();
@@ -839,3 +846,115 @@ function viewRecipes(){
       h('td',null,[({absolute:'绝对',relative_to_anchor:'相对锚点',delta:'差分',other:'其他'})[c.io.action_param]||c.io.action_param]),
       h('td',null,[(c.used_by||[]).length?h('div',null,(c.used_by||[]).map(i=>h('div',null,[h('a',{href:hashFor(i),text:RUNS[i]?RUNS[i].name:i})]))):h('span',{class:'idle',text:'未被引用'})])]))});
   t.appendChild(tb);v.appendChild(h('div',{class:'scroll'},[t]));return v}
+
+/* ================= 总览：统一介绍 ================= */
+function viewIntro(){
+  const v=h('div',{style:'display:flex;flex-direction:column;gap:18px'});
+  const c=a=>(a||[]).length;
+  const runsPre=DATA.runs.filter(r=>inGroup(r,'pre')),runsFt=DATA.runs.filter(r=>inGroup(r,'ft'));
+  const real=realEvals(),vts=DATA.vendor_tests||[];
+  const trials=real.reduce((a,e)=>a+trialStats(e).n,0),labeled=real.reduce((a,e)=>a+trialStats(e).labeled,0);
+  const vtTrials=vts.reduce((a,x)=>a+x.trials.length,0);
+  v.appendChild(h('div',null,[h('h2',{text:'RealBench',style:'font-size:24px'}),
+    h('p',{style:'font-size:15px;max-width:760px;margin:6px 0 0',text:'RealBench 是一个把机器人学习的全流程结构化、数字化、统一管理的系统：从数据采集方案、数据集、数据配方，到预训练、微调与后训练，再到真机测评和厂商 API 测试。每一段都有固定字段的记录，记录之间互相链接，真机上结果变好或变差时，可以顺着链接回头找到是哪一环变了。'})]));
+  const stage=(no,title,href,count,unit,what,fields)=>h('a',{class:'stage',href},[h('div',{class:'sno',text:no}),h('div',{class:'stt',text:title}),h('div',{class:'scnt'},[h('b',{text:String(count)}),h('span',{text:' '+unit})]),h('p',{class:'sdesc',text:what}),h('p',{class:'sfld',text:'记录：'+fields})]);
+  v.appendChild(h('section',null,[h('h3',{text:'全流程',style:'margin:0 0 8px'}),h('div',{class:'stages'},[
+    stage('①','采集方案','#plans',c(DATA.plans),'个','数据怎么采：遥操作方式、动作与状态记录的是什么、频率、安全机制、客户端版本。','动作含义、采样、客户端提交、和别的方案的区别'),
+    stage('②','数据集','#datasets',c(DATA.datasets),'个版本','采到的每一批数据：规模、校验结果、存放位置，每个数据集有一条预览视频。','集数、帧数、动作语义、校验、位置、预览'),
+    stage('③','数据配方','#recipes',c(DATA.recipes),'个','训练到底用了什么：用哪些集、怎么筛、怎么截、怎么划分训练和验证、输入输出怎么定义。','筛选、截取、划分、锚点数、归一化'),
+    stage('④','预训练','#pretrain',runsPre.length,'次','大规模混合数据上的预训练，以及随机初始化的从头训。','超参、loss 曲线、数据配比、实验组'),
+    stage('⑤','微调 / 后训练','#train',runsFt.length,'次','从预训练基座出发，在目标任务数据上训练，或再加额外目标（如 RTC）。','超参、loss 曲线、checkpoint 哈希、训练栈'),
+    stage('⑥','真机测试','#real',real.length,'次评测','我们自己的模型在真机上跑：成功率和三路相机视频，成败由人看视频标注。',trials+' 次试验，其中 '+labeled+' 次已标注'),
+    stage('⑦','厂商 API 测试','#vendor',vts.length,'组测试','把各厂商的模型 API 接到同一台真机上，同一批任务和指令，比成功率，附三路视频。',vtTrials+' 次试验')])]));
+  v.appendChild(h('section',null,[h('h3',{text:'几条规则',style:'margin:0 0 8px'}),h('div',{class:'panel'},[h('ul',{style:'margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px'},[
+    h('li',{text:'缺的字段在页面上标出来，不留空白，也不用 0 或“无”代替没读到的值。'}),
+    h('li',{text:'真机成败只能由看视频的人标注，导入器和程序一律写“未标注”；成功率只统计已标注的试验。'}),
+    h('li',{text:'记录由导入器从训练目录、日志、TensorBoard、真机运行目录读出，读不到的写空，类型（微调、后训练、预训练）由人确认。'}),
+    h('li',{text:'数据本体和权重不进仓库，只记统计、校验结果、哈希和位置；公开页不显示服务器路径和同学姓名。'}),
+    h('li',{text:'每条记录都带来源（读自哪里、什么时候、哪个版本的工具），校验器会拦下引用不存在的记录、超出范围的数值和内部路径。'})])])]));
+  v.appendChild(h('section',null,[h('h3',{text:'其它',style:'margin:0 0 8px'}),h('div',{class:'panel'},[h('p',{class:'sub',style:'margin:0'},[
+    '训练栈（怎么复现一次训练）和实验组（共用基础配置的 ablation）是贯穿各段的辅助记录；',h('a',{href:'#all',text:'全部训练'}),'列出所有训练，',h('a',{href:'#compare',text:'对比'}),'沿链逐环比较两次训练。'])])]));
+  return v}
+
+/* ================= 三路视频：真机测试与厂商测试共用 ================= */
+const CAMS=[['head','头部'],['left_wrist','左腕'],['right_wrist','右腕']];
+function camByName(videos){const m={};(videos||[]).forEach(x=>m[x.camera]=x);return m}
+function trioRow(trial,label){
+  const m=camByName(trial.videos);
+  const cell=([k,zh])=>m[k]?h('figure',{style:'margin:0;display:flex;flex-direction:column;gap:3px;min-width:0'},[
+      h('video',{controls:true,preload:'none',playsinline:true,muted:true,src:m[k].url,'aria-label':label+' '+zh,style:'width:100%;aspect-ratio:4/3;background:#000;border-radius:4px'}),
+      h('figcaption',{style:'font-size:11.5px;color:var(--muted)'},[zh+' ',h('a',{href:m[k].url,target:'_blank',rel:'noreferrer',text:'原文件'}),m[k].note?' · '+m[k].note:''])])
+    :h('figure',{style:'margin:0;min-width:0'},[h('div',{class:'vph',text:'缺'+zh+'视频'}),h('figcaption',{style:'font-size:11.5px;color:var(--muted)',text:zh})]);
+  return h('div',{class:'trio'},CAMS.map(cell))}
+function trialCard(t,evLabel){
+  return h('div',{class:'trialcard'},[
+    h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-bottom:6px'},[
+      h('b',{text:'第 '+t.n+' 次'}),h('span',{class:t.result==='success'?'ok':t.result==='unlabeled'?'warn':t.result==='fail'?'bad':'',text:RESULT[t.result]}),
+      t.duration_s!=null?h('span',{class:'sub num',text:t.duration_s+' 秒'}):null,t.failure_mode?h('span',{class:'sub',text:'失败方式：'+t.failure_mode}):null,
+      t.label_by?h('span',{class:'sub',text:'标注：'+t.label_by}):null]),
+    trioRow(t,evLabel+' 第 '+t.n+' 次'),
+    t.note?h('p',{class:'sub',style:'margin:6px 0 0',text:t.note}):null])}
+
+/* ================= ⑦ 厂商 API 测试 ================= */
+function vtStats(x){
+  const c={success:0,fail:0,partial:0,invalid:0,unlabeled:0};x.trials.forEach(t=>c[t.result]++);
+  const labeled=x.trials.length-c.unlabeled;
+  return {n:x.trials.length,labeled,...c,rate:labeled?c.success/labeled:null,enough:x.trials.length>=(x.min_trials_required||3),
+    vids:x.trials.reduce((a,t)=>a+(t.videos||[]).length,0),full:x.trials.filter(t=>(t.videos||[]).length>=3).length}}
+function vtRate(s,x){
+  if(!s.n)return h('span',{class:'idle',text:'0 次'});
+  if(!s.labeled)return h('span',{class:'warn num',text:s.n+' 次，成败未标注'});
+  return h('span',{class:'num '+(s.enough?'':'warn'),text:s.success+'/'+s.labeled+' 成功（'+Math.round(s.rate*100)+'%）'+(s.enough?'':'，不足 '+(x.min_trials_required||3)+' 次')})}
+function viewVendor(){
+  const v=h('div',{style:'display:flex;flex-direction:column;gap:14px'});
+  const all=DATA.vendor_tests||[];
+  v.appendChild(h('div',null,[h('h2',{text:'厂商 API 测试'}),h('p',{class:'sub',text:'把各厂商提供的模型 API 接到同一台真机上，用同样的任务和语言指令测。被测对象是厂商的服务，不是我们训练的权重，所以这里没有训练记录和权重哈希，记的是厂商、模型名、接口版本、调用日期和调用配置。每次试验附头部、左腕、右腕三路视频。成功率只统计已有人标注成败的试验。'})]));
+  if(!all.length){
+    v.appendChild(h('div',{class:'panel'},[h('h3',{text:'还没有厂商测试记录'}),
+      h('p',{class:'sub',text:'每一行将是一组测试：一个厂商、一个模型版本、一个任务、一条语言指令下的若干次试验。'}),
+      h('p',{class:'sub',text:'需要的信息：厂商名、模型名或版本号（厂商没给就写“未提供”）、调用日期、任务、发给 API 的语言指令原文、每次试验的三路视频和成败标注，以及成功的判定标准。'}),
+      h('p',{class:'sub',text:'记录结构已经定好（schema/vendor_test.schema.json），校验器会检查试验数、三路视频是否齐、有没有写成功判定标准。'})]));
+    return v}
+  const f=window.__vf||(window.__vf={task:'',vendor:''});
+  const tasks=[...new Set(all.map(x=>x.task))],vendors=[...new Set(all.map(x=>x.vendor))];
+  const sel=(label,key,opts)=>{const s=h('select',{onchange:e=>{f[key]=e.target.value;renderVendorTable()}},[h('option',{value:'',text:'全部'}),...opts.map(o=>h('option',{value:o,text:o}))]);s.value=f[key];return h('label',null,[label,s])};
+  v.appendChild(h('div',{class:'filters'},[sel('任务','task',tasks),sel('厂商','vendor',vendors)]));
+  v.appendChild(h('div',{id:'vt-tbl'}));
+  setTimeout(renderVendorTable,0);
+  return v}
+function renderVendorTable(){
+  const box=document.getElementById('vt-tbl');if(!box)return;box.textContent='';
+  const f=window.__vf||{};
+  const rows=(DATA.vendor_tests||[]).filter(x=>(!f.task||x.task===f.task)&&(!f.vendor||x.vendor===f.vendor)).sort((a,b)=>(a.task+a.vendor).localeCompare(b.task+b.vendor)||(b.date||'').localeCompare(a.date||''));
+  if(!rows.length){box.appendChild(h('div',{class:'empty',text:'没有符合条件的测试。'}));return}
+  const t=h('table',{class:'runs'});
+  t.appendChild(h('thead',null,[h('tr',null,['任务','语言指令','厂商 / 模型','日期','成功率','试验','三路视频',''].map(x=>h('th',{text:x})))]));
+  t.appendChild(h('tbody',null,rows.map(x=>{const s=vtStats(x);
+    return h('tr',{class:'row'},[h('td',{class:'name',text:x.task}),h('td',null,[h('span',{text:x.instruction}),x.instruction_lang?h('span',{class:'cell-sub',text:x.instruction_lang}):null]),
+      h('td',{class:'name'},[h('b',{text:x.vendor}),h('span',{class:'cell-sub',text:x.model+(x.api_version?' · '+x.api_version:'')}),x._pending?h('span',{class:'pill tag-sample',text:'待登记'}):null]),
+      h('td',{class:'num',text:x.date}),h('td',null,[vtRate(s,x)]),h('td',{class:'num',text:s.n+' 次'}),
+      h('td',null,[s.vids?h('span',{class:'num',text:s.full+'/'+s.n+' 次三路齐'}):h('span',{class:'missing',text:'无'})]),
+      h('td',null,[h('a',{href:hashFor(x.id),text:'详情'})])])})));
+  box.appendChild(h('div',{class:'scroll'},[t]))}
+function viewVtest(id){
+  const x=(DATA.vendor_tests||[]).find(y=>y.id===id);if(!x)return viewMissing('找不到厂商测试 '+id);
+  const s=vtStats(x),d=x.deployment||{},p=x.protocol||{};
+  const v=h('div',{style:'display:flex;flex-direction:column;gap:16px'});
+  v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#vendor',text:'← 全部厂商测试'})]));
+  v.appendChild(h('div',null,[h('h2',{text:x.vendor+' · '+x.task,style:'font-size:20px'}),h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[
+    x._pending?h('span',{class:'pill tag-sample',text:'待登记'}):null,h('span',{class:'sub num',text:x.id+' · '+x.date+' · '+x.model}),delBtn(x.id,'删除这条测试')])]));
+  const w=[];
+  if(!s.enough)w.push('只有 '+s.n+' 次试验，少于要求的 '+(x.min_trials_required||3)+' 次，不能当结论。');
+  if(s.unlabeled)w.push(s.unlabeled+' 次试验还没人看视频标注成败。');
+  if(!p.success_criterion)w.push('没有写成功的判定标准，标注人没有统一依据。');
+  if(x.model==='未提供')w.push('厂商没有给出模型名或版本，之后无法区分是不是同一个模型。');
+  if(w.length)v.appendChild(h('div',{class:'banner'},w.map(t=>h('div',{text:t}))));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'测试设定'}),h('div',{class:'two'},[
+    h('div',{class:'panel'},[kvTable([['厂商',x.vendor],['模型',x.model],['接口版本',x.api_version||missing('未记录')],['调用日期',x.date],['任务',x.task],['语言指令',h('span',{class:'mono',text:x.instruction})],['指令语言',x.instruction_lang||'—'],['机器人',x.robot||'—']])]),
+    h('div',{class:'panel'},[kvTable([['成功率',vtRate(s,x)],['成功的判定标准',p.success_criterion||missing('未写')],['每次最长',p.max_seconds_per_trial==null?'—':p.max_seconds_per_trial+' 秒'],['协议',(p.name||'—')+(p.version?' '+p.version:'')],
+      ['客户端',(d.client||'—')+(d.client_git?' @'+d.client_git.slice(0,8):'')],['调用方式',d.call_mode||'—'],['重规划步',d.replan==null?'—':d.replan],['控制频率',d.control_hz==null?'—':d.control_hz+' Hz'],
+      ['往返延迟',d.latency_ms?Object.entries(d.latency_ms).map(([k,y])=>k+' '+y+' ms').join('，'):'—']])])])]));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'逐次试验（头部 / 左腕 / 右腕）'}),h('div',{style:'display:flex;flex-direction:column;gap:12px'},x.trials.map(t=>trialCard(t,x.vendor)))]));
+  if(x.conclusion)v.appendChild(h('section',{class:'sec'},[h('h2',{text:'结论'}),h('div',{class:'panel'},[h('p',{text:x.conclusion})])]));
+  if(x.notes)v.appendChild(h('section',{class:'sec'},[h('h2',{text:'备注'}),h('div',{class:'panel'},[h('p',{text:x.notes})])]));
+  return v}

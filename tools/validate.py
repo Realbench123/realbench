@@ -50,17 +50,18 @@ def main():
     cpv = Draft202012Validator(load_schema("collection_plan.schema.json"))
     stv = Draft202012Validator(load_schema("stack.schema.json"))
     xgv = Draft202012Validator(load_schema("experiment_group.schema.json"))
+    vtv = Draft202012Validator(load_schema("vendor_test.schema.json"))
     evv = Draft202012Validator(load_schema("eval.schema.json"))
     errs, warns = [], []
     runs, evals, recipes = {}, {}, {}
-    datasets, plans, stacks, groups = {}, {}, {}, {}
+    datasets, plans, stacks, groups, vtests = {}, {}, {}, {}, {}
     seen_r, seen_e, seen_c, seen_x = {}, {}, {}, {}
     dirs = [("records/runs", "records/evals", "records/recipes", "records")]
     if a.include_local:
         dirs.append((".local/runs", ".local/evals", ".local/recipes", ".local"))
     for rd, ed, cd, base in dirs:
         pub = base == "records"
-        for tbl, sub, val in ((datasets, "datasets", dsv), (plans, "plans", cpv), (stacks, "stacks", stv), (groups, "groups", xgv)):
+        for tbl, sub, val in ((datasets, "datasets", dsv), (plans, "plans", cpv), (stacks, "stacks", stv), (groups, "groups", xgv), (vtests, "vendor_tests", vtv)):
             for f, x in check_dir(os.path.join(ROOT, base, sub), val, sub, errs, warns, seen_x, public=pub):
                 tbl[x["id"]] = x
         for f, r in check_dir(os.path.join(ROOT, rd), runv, "run", errs, warns, seen_r, public=rd.startswith("records")):
@@ -74,7 +75,7 @@ def main():
     sys.path.insert(0, HERE)
     from _admin_core import tombstones
     gone = {e["id"]: e["state"] for e in tombstones()["entries"]}
-    for table in (runs, evals, recipes, datasets, plans, stacks, groups):
+    for table in (runs, evals, recipes, datasets, plans, stacks, groups, vtests):
         for rid in table:
             if rid in gone and not rid.endswith("-sample") and "sample" not in rid:
                 errs.append(f"{rid}: 在 records/_deleted.json 里标为 {gone[rid]}，不应再出现在记录里")
@@ -129,6 +130,26 @@ def main():
     for sid, s_ in stacks.items():
         if not s_.get("known_issues"):
             warns.append(f"{sid}: 没有记录已知问题")
+    for vid, v_ in vtests.items():
+        ns = [t_["n"] for t_ in v_["trials"]]
+        if len(ns) != len(set(ns)):
+            errs.append(f"{vid}: 试验编号重复")
+        if len(v_["trials"]) < v_.get("min_trials_required", 3):
+            warns.append(f"{vid}: 只有 {len(v_['trials'])} 次试验，少于要求的 {v_.get('min_trials_required', 3)} 次，不能当结论")
+        if not v_["model"] or v_["model"] == "未提供":
+            warns.append(f"{vid}: 厂商没有给出模型名或版本，之后无法区分是不是同一个模型")
+        if not (v_.get("protocol") or {}).get("success_criterion"):
+            warns.append(f"{vid}: 没有写成功的判定标准，标注人没有统一依据")
+        for t_ in v_["trials"]:
+            if t_["result"] == "unlabeled":
+                warns.append(f"{vid} 第 {t_['n']} 次: 成败还没人标")
+            cams = {x["camera"] for x in t_.get("videos", [])}
+            miss = {"head", "left_wrist", "right_wrist"} - cams
+            if miss:
+                warns.append(f"{vid} 第 {t_['n']} 次: 缺 {'、'.join(sorted(miss))} 视频")
+            for x in t_.get("videos", []):
+                if not x["url"].startswith("https://"):
+                    errs.append(f"{vid} 第 {t_['n']} 次 {x['camera']}: 视频地址不是 https")
     for xid, g_ in groups.items():
         labels = [r_["label"] for r_ in g_["runs"]]
         if len(labels) != len(set(labels)):
@@ -222,7 +243,7 @@ def main():
     for cid, c in recipes.items():
         c["used_by"] = sorted(rid for rid, r in runs.items() if r.get("recipe_id") == cid)
     if not a.quiet:
-        print(f"数据集 {len(datasets)}、采集方案 {len(plans)}、训练栈 {len(stacks)}、实验组 {len(groups)}；配方 {len(recipes)}、训练 {len(runs)}、评测 {len(evals)}")
+        print(f"数据集 {len(datasets)}、采集方案 {len(plans)}、训练栈 {len(stacks)}、实验组 {len(groups)}、厂商测试 {len(vtests)}；配方 {len(recipes)}、训练 {len(runs)}、评测 {len(evals)}")
         for w in warns:
             print("警告:", w)
     for e in errs:

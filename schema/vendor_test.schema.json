@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://realbench.local/schema/vendor_test.schema.json",
+  "title": "厂商 API 真机测试 (vendor_test)",
+  "description": "把厂商提供的模型 API 接到真机上跑一组任务。被测对象是厂商的服务，不是我们训练的权重：没有训练记录和权重哈希，要记的是厂商、模型名、接口版本、调用日期和调用配置。同一个厂商在同一天、同一套部署配置下对同一个任务跑的若干次试验放在一条记录里。成败只能由看视频的人标注，不能由程序判定。",
+  "type": "object",
+  "required": ["id", "vendor", "model", "date", "task", "instruction", "trials", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^vt-[a-z0-9][a-z0-9-]*$"},
+    "vendor": {"type": "string", "minLength": 1, "description": "厂商或产品名，如公开的模型服务名"},
+    "model": {"type": "string", "minLength": 1, "description": "厂商给的模型名或版本号。厂商没给就写“未提供”，不要编"},
+    "api_version": {"type": ["string", "null"]},
+    "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "owner": {"type": "string"},
+    "task": {"type": "string", "minLength": 1, "description": "任务名，如 fold-blue-fabric"},
+    "instruction": {"type": "string", "minLength": 1, "description": "发给 API 的语言指令原文"},
+    "instruction_lang": {"type": ["string", "null"], "description": "指令语言，如 zh、en"},
+    "robot": {"type": ["string", "null"]},
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "client": {"type": ["string", "null"], "description": "调用 API 的客户端名"},
+        "client_git": {"type": ["string", "null"]},
+        "call_mode": {"type": ["string", "null"], "description": "例如 同步 / 异步、一次返回多少步动作"},
+        "replan": {"type": ["integer", "null"]},
+        "control_hz": {"type": ["number", "null"]},
+        "latency_ms": {"type": ["object", "null"], "description": "往返延迟统计，读到什么写什么，如 {median, p95}"},
+        "extra": {"type": "object"}
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "max_seconds_per_trial": {"type": ["number", "null"]},
+        "success_criterion": {"type": ["string", "null"], "description": "成功的判定标准，标注人依据它判。没有写就是没有"},
+        "note": {"type": "string"}
+      }
+    },
+    "trials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["n", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "n": {"type": "integer", "minimum": 1},
+          "result": {"type": "string", "enum": ["success", "fail", "partial", "invalid", "unlabeled"]},
+          "duration_s": {"type": ["number", "null"]},
+          "failure_mode": {"type": ["string", "null"]},
+          "label_by": {"type": ["string", "null"]},
+          "note": {"type": "string"},
+          "videos": {
+            "type": "array",
+            "description": "三路相机：head、left_wrist、right_wrist。缺哪路就不写哪路，页面会标缺",
+            "items": {
+              "type": "object",
+              "required": ["camera", "url"],
+              "additionalProperties": false,
+              "properties": {
+                "camera": {"type": "string", "enum": ["head", "left_wrist", "right_wrist"]},
+                "url": {"type": "string"},
+                "sha256": {"type": ["string", "null"]},
+                "note": {"type": ["string", "null"]}
+              }
+            }
+          }
+        }
+      }
+    },
+    "min_trials_required": {"type": "integer", "default": 3},
+    "conclusion": {"type": "string"},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "notes": {"type": "string"},
+    "source": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {"type": "string", "enum": ["auto-import", "manual"]},
+        "path": {"type": "string"},
+        "imported_at": {"type": "string"},
+        "importer_version": {"type": "string"}
+      }
+    }
+  }
+}

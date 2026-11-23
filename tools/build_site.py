@@ -29,7 +29,7 @@ def main():
     a = ap.parse_args()
 
     runs, evals, curves, recipes = [], [], {}, []
-    extra = {"datasets": [], "plans": [], "stacks": [], "groups": []}
+    extra = {"datasets": [], "plans": [], "stacks": [], "groups": [], "vendor_tests": []}
     srcs = [(os.path.join(ROOT, "records", "runs"), os.path.join(ROOT, "records", "evals"), os.path.join(ROOT, "curves"), False, os.path.join(ROOT, "records", "recipes"))]
     if a.include_local:
         srcs.append((os.path.join(ROOT, ".local", "runs"), os.path.join(ROOT, ".local", "evals"), os.path.join(ROOT, ".local", "curves"), True, os.path.join(ROOT, ".local", "recipes")))

@@ -11,24 +11,24 @@ import json, os, re, shutil, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-KIND = {"tr-": "runs", "ev-": "evals", "rc-": "recipes", "ds-": "datasets", "cp-": "plans", "st-": "stacks", "xg-": "groups"}
-TYPE = {"tr-": "run", "ev-": "eval", "rc-": "recipe", "ds-": "dataset", "cp-": "plan", "st-": "stack", "xg-": "group"}
+KIND = {"tr-": "runs", "ev-": "evals", "rc-": "recipes", "ds-": "datasets", "cp-": "plans", "st-": "stacks", "xg-": "groups", "vt-": "vendor_tests"}
+TYPE = {"tr-": "run", "ev-": "eval", "rc-": "recipe", "ds-": "dataset", "cp-": "plan", "st-": "stack", "xg-": "group", "vt-": "vendor_test"}
 BASES = [os.path.join(ROOT, "records"), os.path.join(ROOT, ".local")]
 CURVES = [os.path.join(ROOT, "curves"), os.path.join(ROOT, ".local", "curves")]
 TOMB = os.path.join(ROOT, "records", "_deleted.json")
 TRASH = os.path.join(ROOT, ".local", "trash")
 
 
-ID_RE = re.compile(r"^(tr|ev|rc|ds|cp|st|xg)-[a-z0-9][a-z0-9-]{0,80}$")
+ID_RE = re.compile(r"^(tr|ev|rc|ds|cp|st|xg|vt)-[a-z0-9][a-z0-9-]{0,80}$")
 
 
 def _prefix(i):
     if not isinstance(i, str) or not ID_RE.match(i):
-        raise ValueError(f"id 格式不对: {str(i)[:40]!r}（只允许 tr-/ev-/rc-/ds-/cp-/st-/xg- 加小写字母、数字、连字符）")
+        raise ValueError(f"id 格式不对: {str(i)[:40]!r}（只允许 tr-/ev-/rc-/ds-/cp-/st-/xg-/vt- 加小写字母、数字、连字符）")
     for p in KIND:
         if i.startswith(p):
             return p
-    raise ValueError(f"不认识的 id: {i}（应以 tr-、ev-、rc-、ds-、cp-、st-、xg- 开头）")
+    raise ValueError(f"不认识的 id: {i}（应以 tr-、ev-、rc-、ds-、cp-、st-、xg-、vt- 开头）")
 
 
 def _jload(p):
