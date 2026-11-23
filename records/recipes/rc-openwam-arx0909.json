@@ -1,0 +1,96 @@
+{
+  "id": "rc-openwam-arx0909",
+  "name": "ARX 0909 七任务混合（OpenWAM 阶段二）",
+  "owner": "",
+  "task": "arx-0909-seven-tasks",
+  "robot": "ARX LIFT2s",
+  "instruction": null,
+  "parent_id": null,
+  "changes_from_parent": [],
+  "sources": [
+    {
+      "name": "0909_mixed_v1/All",
+      "kind": "teleop",
+      "episodes": 2846,
+      "weight": null,
+      "collected": null,
+      "operators": null,
+      "location": null,
+      "format": "lerobot v3.0",
+      "sha256": null,
+      "url": null,
+      "note": "和 LingBot 用的是同一个数据集。配置里 split: train，没有找到划分文件，是否留出验证集未知。"
+    }
+  ],
+  "selection": {
+    "rule": "未记录",
+    "included": 2846,
+    "excluded": [],
+    "success_count": null,
+    "failed_count": null
+  },
+  "frames": {
+    "fps": 30,
+    "horizon": null,
+    "trim": {
+      "method": "未记录",
+      "pad_before_s": null,
+      "pad_after_s": null,
+      "detector": null,
+      "interior_trim": false
+    },
+    "source_frames_total": 726055,
+    "kept_frames_total": null,
+    "anchors_train": null,
+    "anchors_val": null,
+    "episode_frames": null,
+    "keep_file": null,
+    "keep_file_sha256": null,
+    "note": "OpenWAM 按视频窗口取样：每个窗口 33 帧、视频帧步长 4、窗口步长 8，不是逐帧锚点，所以没有“训练锚点数”"
+  },
+  "split": {
+    "unit": "未记录",
+    "seed": 42,
+    "train_ids": [],
+    "val_ids": [],
+    "val_failed_ids": [],
+    "id_space": "没有逐集划分：配置只有 split: train",
+    "id_note": "没有找到划分文件，不知道是否留出验证集。",
+    "train_success_only": false,
+    "file": null,
+    "file_sha256": null,
+    "no_per_episode_split": true
+  },
+  "io": {
+    "state": "state_dim 80（unify 后），来自 ARX 双臂关节与夹爪",
+    "action": "joint_delta：关节增量；action_dim 80；unify_action_map 把原生维度映射到统一的 80 维（0-5、9、34-39、43）",
+    "action_semantics": "",
+    "action_param": "delta",
+    "action_param_note": "action_mode=joint_delta，相邻帧差分；与 τ₀、π0.5 的“相对当前锚点”不同。shift_action=5.0 的含义配置里没有写，未解读",
+    "cameras": [
+      "head",
+      "left_wrist",
+      "right_wrist"
+    ],
+    "image_size": [
+      384,
+      320
+    ],
+    "prompt_template": null,
+    "normalization": "min-max，normalization_stats_path 为空（没有读到统计文件）",
+    "norm_stats_sha256": null,
+    "state_dim_padded": 80,
+    "action_dim_padded": 80
+  },
+  "used_by": [],
+  "notes": "来自 OpenWAM 阶段二的 config.yaml。图像 384×320，颜色抖动 brightness/contrast/saturation 各 0.2，num_frames=33。多视角 multiview=true。task 指令文本没有读到。动作块长度（horizon）配置里没有直接写，留空。",
+  "source": {
+    "kind": "manual",
+    "path": "OpenWAM 阶段二 config.yaml 的 dataloader 段",
+    "imported_at": "2026-11-23T16:25:02+08:00",
+    "importer_version": "manual"
+  },
+  "dataset_ids": [
+    "ds-0909-mixed-v1"
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "id": "tr-ow-arx0909-s2",
+  "name": "OpenWAM-α ARX 0909 微调（8 卡，阶段二）",
+  "owner": "lerong",
+  "family": "openwam",
+  "kind": "finetune",
+  "kind_note": "微调：从官方 OpenWAM-α 预训练权重起步，先单卡 1000 步，再 8 卡接着训 2500 步（本记录）；阶段一不记录",
+  "kind_suggested": "finetune",
+  "baseline_id": null,
+  "recipe_id": "rc-openwam-arx0909",
+  "base": {
+    "model_path": "OpenWAM-α 阶段一 step 1000（官方预训练起步）",
+    "base_run_id": null
+  },
+  "data": {
+    "sources": [
+      {
+        "name": "All",
+        "episodes": 2846,
+        "weight": null,
+        "kind": "other"
+      }
+    ],
+    "train_episodes": 2846,
+    "val_episodes": 0,
+    "train_anchors": null,
+    "split_file": null,
+    "split_sha256": null,
+    "config_name": "arx_lift2s · 0909_mixed_v1/All"
+  },
+  "hparams": {
+    "max_steps": 2500,
+    "per_device_batch": 1,
+    "grad_accum": 1,
+    "global_batch": 8,
+    "learning_rate": 1e-05,
+    "scheduler": "cosine",
+    "warmup_steps": 0,
+    "weight_decay": null,
+    "seed": null,
+    "trainable": [],
+    "extra": {
+      "zero_stage": 2,
+      "warmup_ratio": 0.05,
+      "save_steps": 250
+    }
+  },
+  "hardware": {
+    "machine": "openwammutigpu 8×H200",
+    "gpus": 8,
+    "gpu_type": "H200",
+    "gpu_indices": null
+  },
+  "code": {
+    "repo": "OpenWAM",
+    "git_hash": null,
+    "dirty": null,
+    "command": null,
+    "config_yaml_sha256": null
+  },
+  "time": {
+    "start": "2026-11-04T21:33:01+00:00",
+    "end": "2026-11-05T07:00:16+00:00",
+    "status_reason": null
+  },
+  "status": "finished",
+  "loss": {
+    "first": 0.2644,
+    "final": 0.1442585,
+    "final_window": 200,
+    "curve_file": "curves/tr-ow-arx0909-s2.json",
+    "summary_bad": false
+  },
+  "checkpoints": [
+    {
+      "step": 1750,
+      "path": "checkpoint_step_1750.safetensors",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    },
+    {
+      "step": 2000,
+      "path": "checkpoint_step_2000.safetensors",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    },
+    {
+      "step": 2250,
+      "path": "checkpoint_step_2250.safetensors",
+      "sha256": null,
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    },
+    {
+      "step": 2500,
+      "path": "checkpoint_step_2500.safetensors",
+      "sha256": "990fcb92d2d83fd76c002e1fb63dc190bb752e2e7c5addabeaa32255462395cd",
+      "hf_repo": null,
+      "hf_revision": null,
+      "kept": true
+    }
+  ],
+  "deployed_as": [],
+  "evals_offline": [],
+  "evals_closed": [],
+  "notes": "base 是阶段一的 step 1000 checkpoint，不是官方权重本身。同一配置被 supervisor 跑了两遍，另一遍已登记不导入。 [导入器] loss 末值取最后 200 步内 200 个采样点的均值 0.1443（标准差 0.0431）；最后一条单步值是 0.0764，噪声大，不要当收敛值。页面曲线降采样到 240 点，末值用的是未降采样的全量。 训练时的代码版本未知：共享参考仓库现在的提交是 2293704，但仓库有未提交文件，无法证明训练时就是它。",
+  "source": {
+    "kind": "auto-import",
+    "path": "2026-11-04_21-36-43",
+    "imported_at": "2026-11-20T17:17:32+08:00",
+    "importer_version": "openwam-importer-0.1"
+  },
+  "stack_id": null
+}
