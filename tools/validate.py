@@ -131,6 +131,9 @@ def main():
         if not s_.get("known_issues"):
             warns.append(f"{sid}: 没有记录已知问题")
     for vid, v_ in vtests.items():
+        if v_["status"] == "planned":
+            warns.append(f"{vid}: 待测，还没有开始（厂商 {v_['vendor']}）")
+            continue
         ns = [t_["n"] for t_ in v_["trials"]]
         if len(ns) != len(set(ns)):
             errs.append(f"{vid}: 试验编号重复")

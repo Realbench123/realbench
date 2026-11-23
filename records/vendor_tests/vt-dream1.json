@@ -1,0 +1,16 @@
+{
+  "id": "vt-dream1",
+  "vendor": "dream1",
+  "status": "planned",
+  "owner": "lerong",
+  "trials": [],
+  "min_trials_required": 3,
+  "tags": [],
+  "notes": "用户 2026-11-23 指定要测，还没有开始。模型名、任务、语言指令、成功判定标准都还没有给出。",
+  "source": {
+    "kind": "manual",
+    "path": "",
+    "imported_at": "2026-11-23T23:14:44+08:00",
+    "importer_version": "manual"
+  }
+}

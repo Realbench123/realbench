@@ -144,7 +144,7 @@ function renderTabs(cur){const t=$('#tabs');t.textContent='';
   const L=[['intro','总览','#'],
     ['plans','① 采集方案（'+c(DATA.plans)+'）','#plans'],['datasets','② 数据集（'+c(DATA.datasets)+'）','#datasets'],['recipes','③ 数据配方（'+c(DATA.recipes)+'）','#recipes'],
     ['pre','④ 预训练（'+n('pre')+'）','#pretrain'],['ft','⑤ 微调 / 后训练（'+n('ft')+'）','#train'],
-    ['real','⑥ 真机测试（'+realEvals().length+'）','#real'],['vendor','⑦ 厂商 API 测试（'+c(DATA.vendor_tests)+'）','#vendor'],
+    ['real','⑥ 真机测试（'+realEvals().length+'）','#real'],['vendor','⑦ 厂商 API 测试（'+(DATA.vendor_tests||[]).filter(x=>x.status!=='planned').length+(((DATA.vendor_tests||[]).filter(x=>x.status==='planned').length)?' + 待测 '+(DATA.vendor_tests||[]).filter(x=>x.status==='planned').length:'')+'）','#vendor'],
     ['stacks','训练栈（'+c(DATA.stacks)+'）','#stacks'],['groups','实验组（'+c(DATA.groups)+'）','#groups'],['all','全部训练','#all'],['compare','对比','#compare']];
   L.forEach(([k,l,hr])=>t.appendChild(h('a',{href:hr,text:l,'aria-current':cur===k?'page':null})))}
 
@@ -854,7 +854,7 @@ function viewIntro(){
   const runsPre=DATA.runs.filter(r=>inGroup(r,'pre')),runsFt=DATA.runs.filter(r=>inGroup(r,'ft'));
   const real=realEvals(),vts=DATA.vendor_tests||[];
   const trials=real.reduce((a,e)=>a+trialStats(e).n,0),labeled=real.reduce((a,e)=>a+trialStats(e).labeled,0);
-  const vtTrials=vts.reduce((a,x)=>a+x.trials.length,0);
+  const vtTrials=vts.reduce((a,x)=>a+x.trials.length,0),vtPlanned=vts.filter(x=>x.status==='planned').length,vtDone=vts.length-vtPlanned;
   v.appendChild(h('div',null,[h('h2',{text:'RealBench',style:'font-size:24px'}),
     h('p',{style:'font-size:15px;max-width:760px;margin:6px 0 0',text:'RealBench 是一个把机器人学习的全流程结构化、数字化、统一管理的系统：从数据采集方案、数据集、数据配方，到预训练、微调与后训练，再到真机测评和厂商 API 测试。每一段都有固定字段的记录，记录之间互相链接，真机上结果变好或变差时，可以顺着链接回头找到是哪一环变了。'})]));
   const stage=(no,title,href,count,unit,what,fields)=>h('a',{class:'stage',href},[h('div',{class:'sno',text:no}),h('div',{class:'stt',text:title}),h('div',{class:'scnt'},[h('b',{text:String(count)}),h('span',{text:' '+unit})]),h('p',{class:'sdesc',text:what}),h('p',{class:'sfld',text:'记录：'+fields})]);
@@ -865,7 +865,7 @@ function viewIntro(){
     stage('④','预训练','#pretrain',runsPre.length,'次','大规模混合数据上的预训练，以及随机初始化的从头训。','超参、loss 曲线、数据配比、实验组'),
     stage('⑤','微调 / 后训练','#train',runsFt.length,'次','从预训练基座出发，在目标任务数据上训练，或再加额外目标（如 RTC）。','超参、loss 曲线、checkpoint 哈希、训练栈'),
     stage('⑥','真机测试','#real',real.length,'次评测','我们自己的模型在真机上跑：成功率和三路相机视频，成败由人看视频标注。',trials+' 次试验，其中 '+labeled+' 次已标注'),
-    stage('⑦','厂商 API 测试','#vendor',vts.length,'组测试','把各厂商的模型 API 接到同一台真机上，同一批任务和指令，比成功率，附三路视频。',vtTrials+' 次试验')])]));
+    stage('⑦','厂商 API 测试','#vendor',vtDone,'组已测','把各厂商的模型 API 接到同一台真机上，同一批任务和指令，比成功率，附三路视频。',(vtPlanned?vtPlanned+' 家待测，':'')+vtTrials+' 次试验')])]));
   v.appendChild(h('section',null,[h('h3',{text:'几条规则',style:'margin:0 0 8px'}),h('div',{class:'panel'},[h('ul',{style:'margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px'},[
     h('li',{text:'缺的字段在页面上标出来，不留空白，也不用 0 或“无”代替没读到的值。'}),
     h('li',{text:'真机成败只能由看视频的人标注，导入器和程序一律写“未标注”；成功率只统计已标注的试验。'}),
@@ -895,6 +895,7 @@ function trialCard(t,evLabel){
     trioRow(t,evLabel+' 第 '+t.n+' 次'),
     t.note?h('p',{class:'sub',style:'margin:6px 0 0',text:t.note}):null])}
 
+const VSTAT_TXT={planned:'待测',testing:'测试中',done:'已测完'};
 /* ================= ⑦ 厂商 API 测试 ================= */
 function vtStats(x){
   const c={success:0,fail:0,partial:0,invalid:0,unlabeled:0};x.trials.forEach(t=>c[t.result]++);
@@ -902,6 +903,7 @@ function vtStats(x){
   return {n:x.trials.length,labeled,...c,rate:labeled?c.success/labeled:null,enough:x.trials.length>=(x.min_trials_required||3),
     vids:x.trials.reduce((a,t)=>a+(t.videos||[]).length,0),full:x.trials.filter(t=>(t.videos||[]).length>=3).length}}
 function vtRate(s,x){
+  if(x.status==='planned')return h('span',{class:'idle',text:'还没测'});
   if(!s.n)return h('span',{class:'idle',text:'0 次'});
   if(!s.labeled)return h('span',{class:'warn num',text:s.n+' 次，成败未标注'});
   return h('span',{class:'num '+(s.enough?'':'warn'),text:s.success+'/'+s.labeled+' 成功（'+Math.round(s.rate*100)+'%）'+(s.enough?'':'，不足 '+(x.min_trials_required||3)+' 次')})}
@@ -925,8 +927,17 @@ function viewVendor(){
 function renderVendorTable(){
   const box=document.getElementById('vt-tbl');if(!box)return;box.textContent='';
   const f=window.__vf||{};
-  const rows=(DATA.vendor_tests||[]).filter(x=>(!f.task||x.task===f.task)&&(!f.vendor||x.vendor===f.vendor)).sort((a,b)=>(a.task+a.vendor).localeCompare(b.task+b.vendor)||(b.date||'').localeCompare(a.date||''));
-  if(!rows.length){box.appendChild(h('div',{class:'empty',text:'没有符合条件的测试。'}));return}
+  const planned=(DATA.vendor_tests||[]).filter(x=>x.status==='planned');
+  const rows=(DATA.vendor_tests||[]).filter(x=>x.status!=='planned'&&(!f.task||x.task===f.task)&&(!f.vendor||x.vendor===f.vendor)).sort((a,b)=>((a.task||'')+a.vendor).localeCompare((b.task||'')+b.vendor)||(b.date||'').localeCompare(a.date||''));
+  if(planned.length){
+    box.appendChild(h('div',{class:'panel',style:'margin-bottom:14px'},[h('h3',{text:'待测（'+planned.length+' 家）'}),
+      h('p',{class:'sub',text:'这几家已经确定要测，还没有开始。下面的信息等测的时候补：模型名或版本、调用日期、任务、语言指令、每次试验的三路视频和成败。'}),
+      h('div',{style:'display:flex;flex-direction:column;gap:8px'},planned.map(x=>h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;padding:8px 0;border-top:1px solid var(--line)'},[
+        h('b',{text:x.vendor}),h('span',{class:'idle',text:'待测'}),x.model?h('span',{class:'sub',text:'模型 '+x.model}):h('span',{class:'missing',text:'模型名未定'}),
+        x.task?h('span',{class:'sub',text:'任务 '+x.task}):h('span',{class:'missing',text:'任务未定'}),
+        x.notes?h('span',{class:'sub',text:x.notes}):null,h('a',{href:hashFor(x.id),text:'详情'}),delBtn(x.id,'删除')])))]));
+  }
+  if(!rows.length){box.appendChild(planned.length?h('div',{class:'empty',text:'还没有测完或在测的记录。'}):h('div',{class:'empty',text:'没有符合条件的测试。'}));return}
   const t=h('table',{class:'runs'});
   t.appendChild(h('thead',null,[h('tr',null,['任务','语言指令','厂商 / 模型','日期','成功率','试验','三路视频',''].map(x=>h('th',{text:x})))]));
   t.appendChild(h('tbody',null,rows.map(x=>{const s=vtStats(x);
@@ -941,6 +952,7 @@ function viewVtest(id){
   const s=vtStats(x),d=x.deployment||{},p=x.protocol||{};
   const v=h('div',{style:'display:flex;flex-direction:column;gap:16px'});
   v.appendChild(h('div',{class:'crumb'},[h('a',{href:'#vendor',text:'← 全部厂商测试'})]));
+  if(x.status==='planned')return vtPlanned(v,x);
   v.appendChild(h('div',null,[h('h2',{text:x.vendor+' · '+x.task,style:'font-size:20px'}),h('div',{style:'display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center'},[
     x._pending?h('span',{class:'pill tag-sample',text:'待登记'}):null,h('span',{class:'sub num',text:x.id+' · '+x.date+' · '+x.model}),delBtn(x.id,'删除这条测试')])]));
   const w=[];
@@ -956,5 +968,15 @@ function viewVtest(id){
       ['往返延迟',d.latency_ms?Object.entries(d.latency_ms).map(([k,y])=>k+' '+y+' ms').join('，'):'—']])])])]));
   v.appendChild(h('section',{class:'sec'},[h('h2',{text:'逐次试验（头部 / 左腕 / 右腕）'}),h('div',{style:'display:flex;flex-direction:column;gap:12px'},x.trials.map(t=>trialCard(t,x.vendor)))]));
   if(x.conclusion)v.appendChild(h('section',{class:'sec'},[h('h2',{text:'结论'}),h('div',{class:'panel'},[h('p',{text:x.conclusion})])]));
+  if(x.notes)v.appendChild(h('section',{class:'sec'},[h('h2',{text:'备注'}),h('div',{class:'panel'},[h('p',{text:x.notes})])]));
+  return v}
+
+function vtPlanned(v,x){
+  v.appendChild(h('div',null,[h('h2',{text:x.vendor+' · 待测',style:'font-size:20px'}),h('div',{style:'display:flex;gap:8px;align-items:center'},[x._pending?h('span',{class:'pill tag-sample',text:'待登记'}):null,h('span',{class:'sub num',text:x.id}),delBtn(x.id,'删除这条')])]));
+  v.appendChild(h('div',{class:'banner',text:'这一家还没有开始测试，下面没有任何结果。成功率、视频、成败都要等测完后由人补，页面不会预填。'}));
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'测的时候要记下来'}),h('div',{class:'panel'},[kvTable([
+    ['厂商',x.vendor],['模型名或版本',x.model||missing('未定。厂商没给就写“未提供”')],['接口版本',x.api_version||missing('未定')],['任务',x.task||missing('未定')],
+    ['语言指令',x.instruction?h('span',{class:'mono',text:x.instruction}):missing('未定，要写发给 API 的原文')],['成功的判定标准',(x.protocol&&x.protocol.success_criterion)||missing('未定，标注前要先写')],
+    ['每次试验的视频','头部、左腕、右腕三路，缺哪路都要标出来'],['成败','测完后由看视频的人标注']])])]));
   if(x.notes)v.appendChild(h('section',{class:'sec'},[h('h2',{text:'备注'}),h('div',{class:'panel'},[h('p',{text:x.notes})])]));
   return v}
