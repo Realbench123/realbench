@@ -7,7 +7,7 @@
   "kind_note": "微调：从 lingbot-vla-v2-6b 基座起步（归档 README 称 Fresh foundation initialization，配置 post_training: true）。类型由用户确认。",
   "kind_suggested": "finetune",
   "baseline_id": null,
-  "recipe_id": null,
+  "recipe_id": "rc-lingbot-arx0909",
   "stack_id": "st-lingbot-vla2",
   "base": {
     "model_path": "lingbot-vla-v2-6b",

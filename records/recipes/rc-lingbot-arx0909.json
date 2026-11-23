@@ -1,0 +1,96 @@
+{
+  "id": "rc-lingbot-arx0909",
+  "name": "ARX 0909 七任务混合（LingBot 联合后训练）",
+  "owner": "",
+  "task": "arx-0909-seven-tasks",
+  "robot": "ARX LIFT2s",
+  "instruction": null,
+  "parent_id": null,
+  "changes_from_parent": [],
+  "sources": [
+    {
+      "name": "0909_mixed_v1/All",
+      "kind": "teleop",
+      "episodes": 2846,
+      "weight": null,
+      "collected": null,
+      "operators": null,
+      "location": null,
+      "format": "lerobot v3.0",
+      "sha256": null,
+      "url": null,
+      "note": "七个任务：L、T、Red、Blue、CircleUp、Down、Banana。混合数据来自多批采集，按 ds-0909-mixed-v1 的记录，原始数据由其它组提供时目录里 raw/ 为空。各任务的指令文本见该数据集记录。"
+    }
+  ],
+  "selection": {
+    "rule": "全部 episode 用于训练，没有留出验证集",
+    "included": 2846,
+    "excluded": [],
+    "success_count": null,
+    "failed_count": null
+  },
+  "frames": {
+    "fps": 30,
+    "horizon": 30,
+    "trim": {
+      "method": "未记录",
+      "pad_before_s": null,
+      "pad_after_s": null,
+      "detector": null,
+      "interior_trim": false
+    },
+    "source_frames_total": 726055,
+    "kept_frames_total": null,
+    "anchors_train": 643521,
+    "anchors_val": 0,
+    "episode_frames": null,
+    "keep_file": null,
+    "keep_file_sha256": null,
+    "note": "anchors_train 来自归档 norm_stats.json 的 count 字段（643521），与数据集记录里的训练锚点数一致；60 FPS 的源数据降到 30 FPS 的做法见数据集记录"
+  },
+  "split": {
+    "unit": "complete source episode",
+    "seed": null,
+    "train_ids": [],
+    "val_ids": [],
+    "val_failed_ids": [],
+    "id_space": "无划分：全部 2846 集训练，没有验证集",
+    "id_note": "同学归档的 README 写明 NO held-out validation split",
+    "train_success_only": false,
+    "file": null,
+    "file_sha256": null,
+    "no_per_episode_split": true
+  },
+  "io": {
+    "state": "臂关节位置 12 + 夹爪 2（原生 14 维，LingBot 内部 pad 到 55 维）",
+    "action": "臂关节相对当前关节（subtract_state=true，relative_type=joint）+ 夹爪绝对；30 步块；标签本身已是下一帧关节反馈目标，不要再移位一帧",
+    "action_semantics": "feedback_open_joint_feedback",
+    "action_param": "relative_to_anchor",
+    "action_param_note": "臂维度减去当前 state，夹爪维度不减（arx_joint_0909.yaml）。采集侧的动作定义是“下一帧实测反馈”，不是 command",
+    "cameras": [
+      "head",
+      "left_wrist",
+      "right_wrist"
+    ],
+    "image_size": [
+      256,
+      256
+    ],
+    "prompt_template": "prompt_type=global，使用任务指令文本",
+    "normalization": "meanstd（臂、末端、夹爪三组）；state 不归一化（state_norm_type: none）",
+    "norm_stats_sha256": null,
+    "state_dim_padded": 55,
+    "action_dim_padded": 55
+  },
+  "used_by": [],
+  "notes": "来自同学归档里的 arx_joint_0909.yaml、runtime.json、norm_stats.json 和 README。img_size 取自 runtime.json（256）；训练时 use_future_image 为 true、推理为 false。采集方案是旧的 arx-feedback-v4。",
+  "source": {
+    "kind": "manual",
+    "path": "lingbot-arx-0909-step10000/inference/assets 与 inference/configs/runtime.json",
+    "imported_at": "2026-11-23T16:23:02+08:00",
+    "importer_version": "manual"
+  },
+  "dataset_ids": [
+    "ds-0909-mixed-v1"
+  ]
+}

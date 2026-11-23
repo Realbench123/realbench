@@ -7,7 +7,7 @@
   "kind_note": "微调：从 pi05_base 起步全参数微调。类型由用户确认。",
   "kind_suggested": "finetune",
   "baseline_id": "tr-pi05-cups-abs-1112",
-  "recipe_id": null,
+  "recipe_id": "rc-pi05-cups-rel",
   "stack_id": "st-pi05-lerobot",
   "base": {
     "model_path": "pi05_base",

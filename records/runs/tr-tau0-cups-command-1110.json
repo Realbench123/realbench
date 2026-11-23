@@ -4,7 +4,7 @@
   "owner": "",
   "family": "tau0",
   "baseline_id": null,
-  "recipe_id": null,
+  "recipe_id": "rc-tau0-cups-command",
   "kind": "finetune",
   "kind_note": "微调：从 tau-0-vla-base 起步全参数微调，command 目标。类型由用户确认。",
   "kind_suggested": "finetune",

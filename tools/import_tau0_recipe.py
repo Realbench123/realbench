@@ -64,6 +64,7 @@ def main():
     ap.add_argument("--action-desc", default="")
     ap.add_argument("--readme-train-anchors", type=int, help="README 里写的训练锚点数，用来验证编号换算")
     ap.add_argument("--readme-val-anchors", type=int)
+    ap.add_argument("--keep-is-partial", metavar="FULL_FRAME_KEEP", help="frame_keep.json 只列了被裁的集时，给一份列全部集的 frame_keep.json（用来取每集总帧数），其余集整集保留")
     ap.add_argument("--parent")
     ap.add_argument("--change", action="append", default=[])
     ap.add_argument("--out", default=os.path.join(ROOT, ".local", "recipes"))
@@ -75,6 +76,13 @@ def main():
     fkp = os.path.join(a.cfg_dir, "frame_keep.json")
     fk = jl(fkp)
     keep = {int(re.search(r"episode_(\d+)", k).group(1)): v for k, v in fk["episodes"].items()}
+    if a.keep_is_partial:
+        # frame_keep 只列被裁的集；其余集整集保留，帧数从 --episode-frames 的另一份完整清单取
+        full = jl(a.keep_is_partial)["episodes"]
+        for k, v in full.items():
+            n = int(re.search(r"episode_(\d+)", k).group(1))
+            if n not in keep:
+                keep[n] = {"source_frames": v["source_frames"], "keep": [0, v["source_frames"]], "sha256": v.get("sha256")}
     excl = []
     for e in a.excluded:
         i, _, why = e.partition(":")
@@ -128,7 +136,7 @@ def main():
                      "detector": det, "interior_trim": False},
             "source_frames_total": sum(lens), "kept_frames_total": sum(kept), "anchors_train": at, "anchors_val": av,
             "episode_frames": {"values": lens, "unit": "帧"},
-            "keep_file": os.path.basename(fkp), "keep_file_sha256": sha(fkp),
+            "keep_file": os.path.basename(fkp), "keep_file_sha256": sha(fkp), "keep_partial_note": ("frame_keep.json 只列出被裁尾的集，其余集整集保留" if a.keep_is_partial else None),
         },
         "split": {
             "unit": sp.get("unit", ""), "seed": sp.get("seed"), "train_ids": tr, "val_ids": va, "val_failed_ids": val_failed,

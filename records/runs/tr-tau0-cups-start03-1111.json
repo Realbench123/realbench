@@ -4,7 +4,7 @@
   "owner": "",
   "family": "tau0",
   "baseline_id": "tr-tau0-cups-command-1110",
-  "recipe_id": null,
+  "recipe_id": "rc-tau0-cups-start03",
   "kind": "finetune",
   "kind_note": "微调：从 tau-0-vla-base 起步，运动前保留 0.3 秒；与 command 基线同划分、同超参。类型由用户确认。",
   "kind_suggested": "finetune",

@@ -4,7 +4,7 @@
   "owner": "",
   "family": "tau0",
   "baseline_id": "tr-tau0-cups-start03-1111",
-  "recipe_id": null,
+  "recipe_id": "rc-tau0-cups-start03-abs",
   "kind": "finetune",
   "kind_note": "微调：从 tau-0-vla-base 起步，臂绝对关节指令；与 start03 同 mask、划分、超参。类型由用户确认。",
   "kind_suggested": "finetune",

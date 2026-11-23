@@ -201,7 +201,10 @@
           "type": "number"
         },
         "horizon": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "description": "动作块长度（步）"
         },
         "trim": {
@@ -224,7 +227,10 @@
               ]
             },
             "detector": {
-              "type": "object",
+              "type": [
+                "object",
+                "null"
+              ],
               "description": "检测器参数原样"
             },
             "interior_trim": {
@@ -260,7 +266,10 @@
           ]
         },
         "episode_frames": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "description": "单集帧数分布，页面画直方图",
           "properties": {
             "values": {
@@ -348,6 +357,10 @@
             "string",
             "null"
           ]
+        },
+        "no_per_episode_split": {
+          "type": "boolean",
+          "description": "true 表示没有逐集的训练/验证划分（比如全部集都用于训练、没有验证集）。此时 train_ids 与 val_ids 允许为空，校验器不要求它们加起来等于 selection.included"
         }
       }
     },

@@ -84,7 +84,7 @@ def main():
         tr, va = sp["train_ids"], sp["val_ids"]
         if set(tr) & set(va):
             errs.append(f"{cid}: 训练集和验证集有交集 {sorted(set(tr) & set(va))[:5]}")
-        if len(tr) + len(va) != c["selection"]["included"]:
+        if not sp.get("no_per_episode_split") and len(tr) + len(va) != c["selection"]["included"]:
             errs.append(f"{cid}: 训练 {len(tr)} + 验证 {len(va)} ≠ selection.included {c['selection']['included']}")
         if not set(sp.get("val_failed_ids", [])) <= set(va):
             errs.append(f"{cid}: val_failed_ids 不全在验证集里")
@@ -169,8 +169,9 @@ def main():
         elif not r.get("recipe_id"):
             warns.append(f"{rid}: 没有引用数据配方，数据部分只能看到训练日志里的粗略数字")
         elif rc:
-            if len(rc["split"]["train_ids"]) != r["data"]["train_episodes"]:
-                errs.append(f"{rid}: 训练集数 {r['data']['train_episodes']} 与配方 {rc['id']} 的 {len(rc['split']['train_ids'])} 不一致")
+            n_rc = rc["selection"]["included"] if rc["split"].get("no_per_episode_split") else len(rc["split"]["train_ids"])
+            if n_rc != r["data"]["train_episodes"]:
+                errs.append(f"{rid}: 训练集数 {r['data']['train_episodes']} 与配方 {rc['id']} 的 {n_rc} 不一致")
             ta, la = rc["frames"].get("anchors_train"), r["data"].get("train_anchors")
             if ta and la and ta != la:
                 errs.append(f"{rid}: 训练日志的锚点数 {la} 与配方算得的 {ta} 不一致，不是同一个划分")

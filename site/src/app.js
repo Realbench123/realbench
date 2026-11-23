@@ -595,6 +595,10 @@ function viewDatasets(){
   const eps=all.filter(d=>!d.derived_from).reduce((a,d)=>a+d.episodes,0);
   v.appendChild(h('div',null,[h('h2',{text:'数据集'}),h('p',{class:'sub',text:'按采集批次分组，同一批的不同动作定义、不同子集放在一起。数据本体不进仓库，这里只记统计、校验结果和位置。共 '+all.length+' 个版本，'+batches.size+' 个批次，其中 '+all.filter(d=>d.preview).length+' 个有预览视频（头部相机，取正中间一集，不挑选）。'})]));
   if(!all.length){v.appendChild(h('div',{class:'empty',text:'还没有数据集记录。'}));return v}
+  v.appendChild(h('div',{class:'panel'},[h('h3',{text:'采集数据集的命名'}),
+    h('p',{class:'sub'},['数据目录里没有成文的命名规范。现有 23 个目录名里 17 个以 MMDD 日期开头，日期之后的部分没有固定结构；最新的叠杯子（arx_stackcups）和叠毛巾（fold_blue）反而没有日期。',
+      '草案建议 ',h('code',{text:'<采集日期MMDD>_<任务>[_<批次序号>]'}),'，人名缩写、格式、动作语义不放进名字，写进记录字段。草案待组内确认，不改任何已有目录名。',' ',
+      h('a',{href:'https://github.com/Realbench123/realbench/blob/main/protocols/dataset-naming.md',target:'_blank',rel:'noreferrer',text:'完整说明 →'})])]));
   const rows=[];
   batches.forEach((xs,b)=>{
     xs.sort((a,c)=>(a.derived_from?1:0)-(c.derived_from?1:0)||a.name.localeCompare(c.name));
@@ -799,12 +803,12 @@ function viewRecipe(id){
       h('tbody',null,c.selection.excluded.map(x=>h('tr',null,[h('td',{class:'n',text:x.id}),h('td',{text:x.reason})])))]):h('p',{class:'sub',text:'没有排除任何集。'})])])]));
   const fr=c.frames,tm=fr.trim||{},det=tm.detector||{};
   v.appendChild(h('section',{class:'sec'},[h('h2',{text:'截取与采样'}),h('div',{class:'two'},[
-    h('div',{class:'panel'},[kvTable([['频率',fr.fps+' Hz'],['动作块长度',fr.horizon+' 步（'+(fr.horizon/fr.fps).toFixed(2)+' 秒）'],['方式',tm.method||'未记录'],
+    h('div',{class:'panel'},[kvTable([['频率',fr.fps+' Hz'],['动作块长度',fr.horizon==null?'未记录':fr.horizon+' 步（'+(fr.horizon/fr.fps).toFixed(2)+' 秒）'],['方式',tm.method||'未记录'],
       ['前留白',tm.pad_before_s==null?'—':tm.pad_before_s+' 秒'],['后留白',tm.pad_after_s==null?'—':tm.pad_after_s+' 秒'],['裁集内部',tm.interior_trim?'是':'否'],
       ...Object.entries(det).filter(([k])=>!k.startsWith('padding')).map(([k,x])=>['检测器 '+k,String(x)]),
       ['保留文件',fr.keep_file?h('span',{class:'hash',text:fr.keep_file+(fr.keep_file_sha256?'  '+fr.keep_file_sha256.slice(0,12)+'…':'')}):'未记录']])]),
     h('div',{class:'chartbox'},[h('h3',{text:'单集帧数分布'}),fr.episode_frames&&fr.episode_frames.values.length?histogram(fr.episode_frames.values,'帧',fr.fps):h('p',{class:'sub',text:'没有记录'})])])]));
-  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'训练 / 验证划分'}),h('div',{class:'panel'},[kvTable([['划分单位',c.split.unit||'未记录'],['种子',c.split.seed==null?'—':c.split.seed],
+  v.appendChild(h('section',{class:'sec'},[h('h2',{text:'训练 / 验证划分'}),c.split.no_per_episode_split?h('div',{class:'banner',text:'这个配方没有逐集的训练/验证划分：'+(c.split.id_note||'全部集都用于训练，没有验证集。')}):null,h('div',{class:'panel'},[kvTable([['划分单位',c.split.unit||'未记录'],['种子',c.split.seed==null?'—':c.split.seed],
     ['只用成功示教训练',c.split.train_success_only?'是':'否'],['划分文件',c.split.file?h('span',{class:'hash',text:c.split.file+(c.split.file_sha256?'  '+c.split.file_sha256.slice(0,12)+'…':'')}):'未记录']]),
     h('div',{style:'margin-top:12px'},[idGrid(c)])])]));
   const io=c.io;
