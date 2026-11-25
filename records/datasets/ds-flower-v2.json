@@ -1,0 +1,306 @@
+{
+  "id": "ds-flower-v2",
+  "name": "插花 flower_v2（原始 hdf5）",
+  "batch_id": "flower-v2",
+  "batch_note": "同任务还有 flower_v1",
+  "derived_from": null,
+  "variant": "raw-hdf5",
+  "task": "flower",
+  "instructions": [
+    "Pick up all the flowers from the table and place each one into the vase."
+  ],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": "cp-arx-collect-v2",
+  "collected": {
+    "by": null,
+    "date_start": "2026-11-24",
+    "date_end": "2026-11-25",
+    "date_basis": "每集 hdf5 的 meta.saved_unix（采集程序保存时刻），不是文件拷贝时间；63 上文件时间和它一致",
+    "operators": null,
+    "command": "cd ~/arx_x5_lift_optimize/arx_collect_v2/tools && ROBOT=arx63 TASK=flower_v2 INSTRUCTION=\"Pick up all the flowers from the table and place each one into the vase.\" ./40_collect.sh"
+  },
+  "episodes": 16,
+  "frames": 64083,
+  "fps": 30,
+  "episode_frames": {
+    "min": 2581,
+    "median": 3607,
+    "max": 7950
+  },
+  "format": "hdf5（arx_collect_v2/2）",
+  "action_semantics": "joint_position_command",
+  "cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "validation": {
+    "status": "partial",
+    "by": "本记录读取了每集 hdf5 的属性（指令、任务名、格式、成败标记、有效区间、丢帧与保护事件）",
+    "video_full_decode": null,
+    "source_episodes_verified": 16,
+    "source_episodes_unavailable": 0,
+    "checked_at": "2026-11-25",
+    "note": "只读了属性，没有解码视频，没有核对哈希。16 集全部 robot_id=arx63、frame_rate=30、三路相机齐全；丢帧记录均为空；保护事件 0 次。"
+  },
+  "success_labels": {
+    "success": 14,
+    "failed": 2,
+    "basis": "采集时遥操作员的 success 标记，没有逐条看视频验证。标失败的是 episode_0 和 episode_13"
+  },
+  "locations": [
+    {
+      "where": "machine",
+      "kind": "raw",
+      "label": "63 号机本机（arx_data/flower_v2），尚未同步到启智共享盘",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "episode_list": [
+    {
+      "index": 0,
+      "frames": 7950,
+      "active": [
+        635,
+        7878
+      ],
+      "success": false,
+      "saved_at": "2026-11-24T14:42:53+08:00",
+      "size_mb": 651.7,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 1,
+      "frames": 5103,
+      "active": [
+        245,
+        5034
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T14:48:52+08:00",
+      "size_mb": 397.7,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 2,
+      "frames": 5749,
+      "active": [
+        77,
+        5677
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T14:54:27+08:00",
+      "size_mb": 450.8,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 3,
+      "frames": 4582,
+      "active": [
+        127,
+        4514
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T14:59:09+08:00",
+      "size_mb": 374.5,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 4,
+      "frames": 3434,
+      "active": [
+        77,
+        3389
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T15:03:00+08:00",
+      "size_mb": 263.7,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 5,
+      "frames": 2901,
+      "active": [
+        52,
+        2847
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T15:06:13+08:00",
+      "size_mb": 228.4,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 6,
+      "frames": 4352,
+      "active": [
+        47,
+        4045
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T20:37:01+08:00",
+      "size_mb": 363.1,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 7,
+      "frames": 4081,
+      "active": [
+        45,
+        4025
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T20:40:49+08:00",
+      "size_mb": 335.0,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 8,
+      "frames": 3420,
+      "active": [
+        119,
+        3140
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T20:49:56+08:00",
+      "size_mb": 278.2,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 9,
+      "frames": 3777,
+      "active": [
+        64,
+        3567
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T20:58:52+08:00",
+      "size_mb": 310.0,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 10,
+      "frames": 3504,
+      "active": [
+        38,
+        3180
+      ],
+      "success": true,
+      "saved_at": "2026-11-24T21:02:31+08:00",
+      "size_mb": 279.3,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 11,
+      "frames": 2954,
+      "active": [
+        87,
+        2679
+      ],
+      "success": true,
+      "saved_at": "2026-11-25T12:24:49+08:00",
+      "size_mb": 239.7,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 12,
+      "frames": 3710,
+      "active": [
+        64,
+        3663
+      ],
+      "success": true,
+      "saved_at": "2026-11-25T12:28:15+08:00",
+      "size_mb": 310.8,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 13,
+      "frames": 3120,
+      "active": [
+        133,
+        3050
+      ],
+      "success": false,
+      "saved_at": "2026-11-25T12:33:23+08:00",
+      "size_mb": 264.9,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 14,
+      "frames": 2581,
+      "active": [
+        33,
+        2449
+      ],
+      "success": true,
+      "saved_at": "2026-11-25T12:37:44+08:00",
+      "size_mb": 205.3,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 15,
+      "frames": 2865,
+      "active": [
+        66,
+        2595
+      ],
+      "success": true,
+      "saved_at": "2026-11-25T12:40:32+08:00",
+      "size_mb": 236.1,
+      "guard_events": 0,
+      "note": null
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "启智共享盘的 data 目录里查不到 flower 数据（2026-11-25 检查），数据本体只在 63 上，共 16 集、约 4.9 GB。63 上还有 flower_v1（81 集，4.6 GB），不在本记录里，采集命令和指令没有给出。episode_0 约 650 MB、帧数最多（7950），是最长的一集。",
+  "source": {
+    "kind": "auto-import",
+    "path": "63 号机 flower_v2 的 16 个 hdf5 属性",
+    "imported_at": "2026-11-25T17:13:55+08:00",
+    "importer_version": "manual-h5attrs-0.1"
+  },
+  "preview": {
+    "sha256": "edfba651b0754ce61741cc28e8614f55fe3b3edfc1e587e3e82729caef703e74",
+    "bytes": 157271,
+    "duration_s": 11.97,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuvj420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 16,
+    "episodes": [
+      {
+        "episode_index": 8,
+        "frames": 3021,
+        "seconds": 100.7,
+        "speed": 8.39
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选；只取遥操作生效区间（第 119 到 3140 帧）；这一集采集时标为成功",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-flower-v2",
+    "tool": "hdf5-preview-0.1",
+    "file": "ds-flower-v2.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-flower-v2.mp4"
+  }
+}

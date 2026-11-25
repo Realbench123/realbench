@@ -640,6 +640,12 @@ function viewDataset(id){
       ['单集帧数',d.episode_frames&&d.episode_frames.median?d.episode_frames.min+' / '+d.episode_frames.median+' / '+d.episode_frames.max+'（最小/中位/最大）':'未记录'],['格式',d.format||'未记录'],['机器人',d.robot],['相机',(d.cameras||[]).join('、')||'未记录']])]),
     h('div',{class:'panel'},[h('h3',{text:'任务文本'}),listOf(d.instructions,t=>h('span',{class:'mono',text:t})),h('h3',{text:'成败标签',style:'margin-top:12px'}),
       kvTable([['成功',d.success_labels.success==null?'未记录':d.success_labels.success],['失败',d.success_labels.failed==null?'未记录':d.success_labels.failed],['依据',d.success_labels.basis||'—']])])])]));
+  if((d.episode_list||[]).length){const el=d.episode_list,ok=el.filter(e=>e.success===true).length,bad=el.filter(e=>e.success===false).length;
+    v.appendChild(sec('每一集',[h('p',{class:'sub',text:'共 '+el.length+' 集：采集时标成功 '+ok+'，标失败 '+bad+(el.length-ok-bad?'，未标 '+(el.length-ok-bad):'')+'。成败是采集时遥操作员的标记，不是看视频后的结论。'}),
+      h('div',{class:'panel scroll'},[h('table',{class:'t'},[h('thead',null,[h('tr',null,['集','帧数','生效区间','生效帧','采集时标记','保护事件','保存时间','大小'].map(x=>h('th',{text:x})))]),
+        h('tbody',null,el.map(e=>h('tr',null,[h('td',{class:'n',text:'episode_'+e.index}),h('td',{class:'n',text:fmtNum(e.frames)}),h('td',{class:'n',text:e.active?e.active[0]+'–'+e.active[1]:'—'}),
+          h('td',{class:'n',text:e.active?fmtNum(e.active[1]-e.active[0]):'—'}),h('td',null,[h('span',{class:e.success===true?'ok':e.success===false?'bad':'',text:e.success===true?'成功':e.success===false?'失败':'未标'})]),
+          h('td',{class:'n',text:e.guard_events==null?'—':e.guard_events}),h('td',{class:'n',text:e.saved_at?e.saved_at.replace('T',' ').slice(0,16):'—'}),h('td',{class:'n',text:e.size_mb==null?'—':e.size_mb+' MB'})])))])])]))}
   v.appendChild(sec('动作含义与采集',[h('div',{class:'panel'},[kvTable([['action 的含义',h('span',{class:'mono',text:d.action_semantics})],
     ['采集方案',d.collection_plan_id&&CP[d.collection_plan_id]?linkTo(d.collection_plan_id,CP[d.collection_plan_id].name):missing('未关联')],
     ['采集人',d.collected.by||'未记录'],['采集日期',(d.collected.date_start||d.collected.date_end)?(d.collected.date_start||'?')+' 至 '+(d.collected.date_end||'?'):missing('未记录')],['日期依据',d.collected.date_basis||'—'],

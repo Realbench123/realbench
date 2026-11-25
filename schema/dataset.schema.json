@@ -419,6 +419,74 @@
           "type": "string"
         }
       }
+    },
+    "episode_list": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "description": "每集一行的明细，数据量小时才填（几十集以内）。成败是采集时的标记，不是看视频后的结论",
+      "items": {
+        "type": "object",
+        "required": [
+          "index",
+          "frames"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "源文件编号，如 episode_7.hdf5 记 7"
+          },
+          "frames": {
+            "type": "integer"
+          },
+          "active": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "遥操作生效区间 [起, 止)，帧"
+          },
+          "success": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "采集时的 success 标记"
+          },
+          "saved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "保存时间，ISO，带时区"
+          },
+          "size_mb": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "guard_events": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
     }
   }
 }
