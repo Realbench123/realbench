@@ -1,0 +1,176 @@
+{
+  "id": "ds-egg-v1",
+  "name": "翻鸡蛋 egg_v1（原始 hdf5）",
+  "batch_id": "egg-v1",
+  "batch_note": "",
+  "derived_from": null,
+  "variant": "raw-hdf5",
+  "task": "flip-egg",
+  "instructions": [
+    "Grasp the pan handle and flick the pan upward to flip the egg onto its other side."
+  ],
+  "robot": "ARX LIFT2s",
+  "collection_plan_id": "cp-arx-collect-v2",
+  "collected": {
+    "by": null,
+    "date_start": "2026-11-25",
+    "date_end": "2026-11-25",
+    "date_basis": "每集 hdf5 的 meta.saved_unix（采集程序保存时刻）",
+    "operators": null,
+    "command": null
+  },
+  "episodes": 6,
+  "frames": 3600,
+  "fps": 30,
+  "episode_frames": {
+    "min": 552,
+    "median": 582,
+    "max": 673
+  },
+  "format": "hdf5（arx_collect_v2/2）",
+  "action_semantics": "joint_position_command",
+  "cameras": [
+    "head",
+    "left_wrist",
+    "right_wrist"
+  ],
+  "validation": {
+    "status": "partial",
+    "by": "本记录读取了每集 hdf5 的属性（指令、任务名、格式、成败标记、有效区间、丢帧与保护事件）",
+    "video_full_decode": null,
+    "source_episodes_verified": 6,
+    "source_episodes_unavailable": 0,
+    "checked_at": "2026-11-27",
+    "note": "只读了属性，没有解码视频，没有核对哈希。6 集全部 robot_id=arx63、frame_rate=30、三路相机齐全、height_command=12.5；丢帧记录为空；保护事件 0 次。"
+  },
+  "success_labels": {
+    "success": 1,
+    "failed": 5,
+    "basis": "采集时遥操作员的 success 标记，没有逐条看视频验证。标成功的只有 episode_2.hdf5；标失败的是 episode_0.hdf5、episode_1.hdf5、episode_3.hdf5、episode_4.hdf5、episode_5.hdf5"
+  },
+  "locations": [
+    {
+      "where": "machine",
+      "kind": "raw",
+      "label": "63 号机本机（arx_data/egg_v1），尚未同步到启智共享盘",
+      "url": null,
+      "verified": true
+    }
+  ],
+  "episode_list": [
+    {
+      "index": 0,
+      "frames": 606,
+      "active": [
+        172,
+        504
+      ],
+      "success": false,
+      "saved_at": "2026-11-25T12:53:00+08:00",
+      "size_mb": 41.2,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 1,
+      "frames": 552,
+      "active": [
+        27,
+        423
+      ],
+      "success": false,
+      "saved_at": "2026-11-25T12:54:03+08:00",
+      "size_mb": 37.5,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 2,
+      "frames": 559,
+      "active": [
+        44,
+        463
+      ],
+      "success": true,
+      "saved_at": "2026-11-25T12:56:06+08:00",
+      "size_mb": 38.4,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 3,
+      "frames": 558,
+      "active": [
+        45,
+        352
+      ],
+      "success": false,
+      "saved_at": "2026-11-25T12:57:14+08:00",
+      "size_mb": 38.0,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 4,
+      "frames": 652,
+      "active": [
+        24,
+        533
+      ],
+      "success": false,
+      "saved_at": "2026-11-25T12:58:25+08:00",
+      "size_mb": 44.3,
+      "guard_events": 0,
+      "note": null
+    },
+    {
+      "index": 5,
+      "frames": 673,
+      "active": [
+        22,
+        237
+      ],
+      "success": false,
+      "saved_at": "2026-11-25T12:59:31+08:00",
+      "size_mb": 44.7,
+      "guard_events": 0,
+      "note": null
+    }
+  ],
+  "used_by_recipes": [],
+  "notes": "采集命令没有提供，collected.command 留空。只有 6 集，其中 5 集标失败，1 集（episode_2）标成功，数据量和成功率都不足以训练。采集日期只有 2026-11-25 一天（12:53 到 13:00）。启智共享盘 data 目录里查不到这份数据。",
+  "source": {
+    "kind": "auto-import",
+    "path": "63 号机 egg_v1 的 6 个 hdf5 属性",
+    "imported_at": "2026-11-27T12:10:02+08:00",
+    "importer_version": "manual-h5attrs-0.1"
+  },
+  "preview": {
+    "sha256": "72b611fa327a13509adb15a13cb3d8f98d48c9c3ab6c70720c216323e2ec49e9",
+    "bytes": 120057,
+    "duration_s": 10.23,
+    "width": 480,
+    "height": 360,
+    "codec": "h264",
+    "pix_fmt": "yuvj420p",
+    "views": [
+      "head"
+    ],
+    "episodes_total": 6,
+    "episodes": [
+      {
+        "episode_index": 3,
+        "frames": 307,
+        "seconds": 10.23,
+        "speed": 1.0
+      }
+    ],
+    "selection": "按 episode_index 排序后取正中间的一集，不挑选；只取遥操作生效区间（第 45 到 352 帧）；这一集采集时标为失败",
+    "max_clip_s": 12.0,
+    "shared_with": [],
+    "owner": "ds-egg-v1",
+    "tool": "hdf5-preview-0.1",
+    "file": "ds-egg-v1.mp4",
+    "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/dataset-previews/ds-egg-v1.mp4"
+  }
+}

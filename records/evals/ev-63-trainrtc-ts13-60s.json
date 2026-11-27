@@ -91,9 +91,19 @@
             "camera": "head",
             "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts13-60s/trial_3.head.mp4",
             "sha256": "05e7e236ed7313e2ab691b967aade095681285c876e260420ea6e5fa35713eb5"
+          },
+          {
+            "camera": "left_wrist",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts13-60s/trial_3.left_wrist.mp4",
+            "sha256": "9a910df68e6915599d5ae81e63ead0c40e0d53372efff98565b9a2793978b739"
+          },
+          {
+            "camera": "right_wrist",
+            "url": "https://huggingface.co/datasets/Realbench123/realbench-videos/resolve/main/tau0/tr-tau0-foldblue-rtc1116/ev-63-trainrtc-ts13-60s/trial_3.right_wrist.mp4",
+            "sha256": "ebc75590ab89bc69cc0c1937f88f9fe00b51946efc89ab25125cc69c9c026a7b"
           }
         ],
-        "note": "原始记录 37 个分片，194 个请求 [头部相机：由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
+        "note": "原始记录 37 个分片，194 个请求 [三路相机（头部、左腕、右腕）都是由推理客户端送入模型的图像（约每 0.3 到 0.4 秒一张）按时间戳拼成，1 倍速，不是连续录像，帧率低。]"
       }
     ],
     "min_trials_required": 3
